@@ -1,25 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <actions>
         <action>
-            <actionName>run</actionName>
-            <packagings>
-                <packaging>jar</packaging>
-            </packagings>
-            <goals>
-                <goal>org.springframework.boot:spring-boot-maven-plugin:1.5.2.RELEASE:run</goal>
-            </goals>
-        </action>
-        <action>
             <actionName>debug</actionName>
             <packagings>
-                <packaging>jar</packaging>
+                <packaging>war</packaging>
+                <packaging>ear</packaging>
+                <packaging>ejb</packaging>
             </packagings>
             <goals>
                 <goal>org.springframework.boot:spring-boot-maven-plugin:1.5.2.RELEASE:run</goal>
             </goals>
             <properties>
                 <run.jvmArguments>-Xdebug -Xrunjdwp:transport=dt_socket,server=n,address=${jpda.address}</run.jvmArguments>
+                <checkstyle.skip>true</checkstyle.skip>
                 <jpda.listen>true</jpda.listen>
             </properties>
+            <activatedProfiles>
+                <activatedProfile>tomcat-embed</activatedProfile>
+            </activatedProfiles>
         </action>
     </actions>

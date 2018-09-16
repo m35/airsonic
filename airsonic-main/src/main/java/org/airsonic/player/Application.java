@@ -1,7 +1,9 @@
 package org.airsonic.player;
 
 import net.sf.ehcache.constructs.web.ShutdownListener;
+import org.apache.catalina.Context;
 import org.airsonic.player.filter.*;
+import org.apache.tomcat.util.scan.StandardJarScanner;
 import org.directwebremoting.servlet.DwrServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +17,8 @@ import org.springframework.boot.autoconfigure.web.MultipartAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
+import org.springframework.boot.context.embedded.EmbeddedServletContainerFactory;
+import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.boot.web.support.SpringBootServletInitializer;
@@ -173,6 +177,18 @@ public class Application extends SpringBootServletInitializer implements Embedde
     @Bean
     public Filter noCacheFilter() {
         return new ResponseHeaderFilter();
+    }
+    
+    // https://stackoverflow.com/questions/43264890/after-upgrade-from-spring-boot-1-2-to-1-5-2-filenotfoundexception-during-tomcat
+    // Solution 1 didn't work
+    @Bean
+    public EmbeddedServletContainerFactory embeddedServletContainerFactory() {
+        return new TomcatEmbeddedServletContainerFactory() {
+            @Override
+            protected void postProcessContext(Context context) {
+                ((StandardJarScanner) context.getJarScanner()).setScanManifest(false);
+            }
+        };
     }
 
     private static SpringApplicationBuilder doConfigure(SpringApplicationBuilder application) {
