@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * Provides AJAX-enabled services for editing tags in music files.
- * This class is used by the DWR framework (http://getahead.ltd.uk/dwr/).
+ * This class is used by the DWR framework (http://directwebremoting.org/dwr/).
  *
  * @author Sindre Mehus
  */
