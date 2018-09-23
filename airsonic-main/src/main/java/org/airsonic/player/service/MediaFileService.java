@@ -535,6 +535,7 @@ public class MediaFileService {
                         mediaFile.setAlbumName(metaData.getAlbumName());
                         mediaFile.setYear(metaData.getYear());
                         mediaFile.setGenre(metaData.getGenre());
+                        mediaFile.setRating(metaData.getRating());
                     }
 
                     // Look for cover art.

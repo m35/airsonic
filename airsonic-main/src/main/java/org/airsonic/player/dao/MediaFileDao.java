@@ -164,7 +164,8 @@ public class MediaFileDao extends AbstractDao {
                      "children_last_updated=?," +
                      "present=?, " +
                      "version=?, " +
-                     "mb_release_id=? " +
+                     "mb_release_id=?, " +
+                     "rating=? " +
                      "where path=?";
 
         logger.trace("Updating media file {}", Util.debugObject(file));
@@ -175,7 +176,7 @@ public class MediaFileDao extends AbstractDao {
                        file.isVariableBitRate(), file.getDurationSeconds(), file.getFileSize(), file.getWidth(), file.getHeight(),
                        file.getCoverArtPath(), file.getParentPath(), file.getPlayCount(), file.getLastPlayed(), file.getComment(),
                        file.getChanged(), file.getLastScanned(), file.getChildrenLastUpdated(), file.isPresent(), VERSION,
-                       file.getMusicBrainzReleaseId(), file.getPath());
+                       file.getMusicBrainzReleaseId(), file.getRating(), file.getPath());
 
         if (n == 0) {
 
@@ -193,7 +194,7 @@ public class MediaFileDao extends AbstractDao {
                    file.isVariableBitRate(), file.getDurationSeconds(), file.getFileSize(), file.getWidth(), file.getHeight(),
                    file.getCoverArtPath(), file.getParentPath(), file.getPlayCount(), file.getLastPlayed(), file.getComment(),
                    file.getCreated(), file.getChanged(), file.getLastScanned(),
-                   file.getChildrenLastUpdated(), file.isPresent(), VERSION, file.getMusicBrainzReleaseId());
+                   file.getChildrenLastUpdated(), file.isPresent(), VERSION, file.getMusicBrainzReleaseId(), file.getRating());
         }
 
         int id = queryForInt("select id from media_file where path=?", null, file.getPath());
