@@ -40,7 +40,17 @@ public class MetaData {
     private Integer height;
     private String musicBrainzReleaseId;
 
-    public Integer getDiscNumber() {
+    
+    private Integer rating;
+
+    public Integer getRating() {
+        return rating;
+    }
+
+    public void setRating(Integer rating) {
+        this.rating = rating;
+    }
+public Integer getDiscNumber() {
         return discNumber;
     }
 

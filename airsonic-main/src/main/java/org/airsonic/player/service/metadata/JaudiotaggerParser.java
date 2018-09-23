@@ -98,6 +98,7 @@ public class JaudiotaggerParser extends MetaDataParser {
                 String albumArtist = getTagField(tag, FieldKey.ALBUM_ARTIST);
                 metaData.setArtist(StringUtils.isBlank(songArtist) ? albumArtist : songArtist);
                 metaData.setAlbumArtist(StringUtils.isBlank(albumArtist) ? songArtist : albumArtist);
+                metaData.setRating(parseInteger(getTagField(tag, FieldKey.RATING)));
             }
 
             AudioHeader audioHeader = audioFile.getAudioHeader();
@@ -256,6 +257,13 @@ public class JaudiotaggerParser extends MetaDataParser {
                 tag.deleteField(FieldKey.YEAR);
             } else {
                 tag.setField(FieldKey.YEAR, String.valueOf(year));
+            }
+
+            Integer rating = metaData.getRating();
+            if (rating == null) {
+                tag.deleteField(FieldKey.RATING);
+            } else {
+                tag.setField(FieldKey.RATING, String.valueOf(rating));
             }
 
             audioFile.commit();

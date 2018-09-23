@@ -68,12 +68,22 @@ public class MediaFile {
     private boolean present;
     private int version;
     private String musicBrainzReleaseId;
+    private Integer rating;
+
+    public Integer getRating() {
+        return rating;
+    }
+
+    public void setRating(Integer rating) {
+        this.rating = rating;
+    }
+
 
     public MediaFile(int id, String path, String folder, MediaType mediaType, String format, String title,
                      String albumName, String artist, String albumArtist, Integer discNumber, Integer trackNumber, Integer year, String genre, Integer bitRate,
                      boolean variableBitRate, Integer durationSeconds, Long fileSize, Integer width, Integer height, String coverArtPath,
                      String parentPath, int playCount, Date lastPlayed, String comment, Date created, Date changed, Date lastScanned,
-                     Date childrenLastUpdated, boolean present, int version, String musicBrainzReleaseId) {
+                     Date childrenLastUpdated, boolean present, int version, String musicBrainzReleaseId, Integer rating) {
         this.id = id;
         this.path = path;
         this.folder = folder;
@@ -105,6 +115,7 @@ public class MediaFile {
         this.present = present;
         this.version = version;
         this.musicBrainzReleaseId = musicBrainzReleaseId;
+        this.rating = rating;
     }
 
     public MediaFile() {

@@ -46,12 +46,12 @@ public class MediaFileDao extends AbstractDao {
     private static final String INSERT_COLUMNS = "path, folder, type, format, title, album, artist, album_artist, disc_number, " +
                                                 "track_number, year, genre, bit_rate, variable_bit_rate, duration_seconds, file_size, width, height, cover_art_path, " +
                                                 "parent_path, play_count, last_played, comment, created, changed, last_scanned, children_last_updated, present, " +
-                                                "version, mb_release_id";
+                                                "version, mb_release_id, rating";
 
     private static final String QUERY_COLUMNS = "id, " + INSERT_COLUMNS;
     private static final String GENRE_COLUMNS = "name, song_count, album_count";
 
-    public static final int VERSION = 4;
+    public static final int VERSION = 5;
 
     private final RowMapper<MediaFile> rowMapper = new MediaFileMapper();
     private final RowMapper musicFileInfoRowMapper = new MusicFileInfoMapper();
@@ -721,7 +721,9 @@ public class MediaFileDao extends AbstractDao {
                     rs.getTimestamp(28),
                     rs.getBoolean(29),
                     rs.getInt(30),
-                    rs.getString(31));
+                    rs.getString(31),
+                    rs.getInt(32)
+            );
         }
     }
 
