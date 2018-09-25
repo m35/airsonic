@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.jaudiotagger.tag.reference.Tagger;
 
 /**
  * Provides database services for ratings.
@@ -107,8 +108,28 @@ public class RatingDao extends AbstractDao {
         try {
             return getJdbcTemplate().queryForObject("select rating from user_rating where username=? and path=?", new Object[]{username, mediaFile.getPath()},Integer.class);
         } catch (EmptyResultDataAccessException x) {
-            return null;
+            try {
+                Integer rawRating = getJdbcTemplate().queryForObject("select rating from media_file where path = ?", new Object[]{mediaFile.getPath()}, Integer.class);
+                // TODO normalize this based on file type and tagger reference
+                //org.jaudiotagger.tag.id3.reference.MediaMonkeyPlayerRating.getInstance(?);
+                /*
+                TODO
+                Rename to meta_rating
+                average calc
+                use if no user rating
+                utilize the reference calculations
+                    maybe use based on file type?
+                add indexing root folder
+                probably remove adding folder entries to the media_file list
+                actually group things by artist and album not folder
+                choose album art from a song in the actual album
+                
+                */
+            } catch (EmptyResultDataAccessException x2) {
+                return null;
+            }            
         }
+        return null;
     }
 
     public int getRatedAlbumCount(final String username, final List<MusicFolder> musicFolders) {
