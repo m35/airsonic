@@ -34,6 +34,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import org.airsonic.player.util.FileUtil;
+import org.apache.commons.lang.ObjectUtils;
 
 /**
  * Provides database services for media files.
@@ -67,6 +69,32 @@ public class MediaFileDao extends AbstractDao {
         return queryOne("select " + QUERY_COLUMNS + " from media_file where path=?", rowMapper, path);
     }
 
+    public MediaFile getAlbumForFile(MediaFile file) {
+
+        // First, get all albums with the correct album name (irrespective of artist).
+        List<MediaFile> candidates = query("select " + QUERY_COLUMNS + " from album where name=?", rowMapper, file.getAlbumName());
+        if (candidates.isEmpty()) {
+            return null;
+        }
+
+        // Look for album with the correct artist.
+        for (MediaFile candidate : candidates) {
+            if (ObjectUtils.equals(candidate.getArtist(), file.getArtist()) && FileUtil.exists(candidate.getPath())) {
+                return candidate;
+            }
+        }
+
+        // Look for album with the same path as the file.
+        for (MediaFile candidate : candidates) {
+            if (ObjectUtils.equals(candidate.getPath(), file.getParentPath())) {
+                return candidate;
+            }
+        }
+
+        // No appropriate album found.
+        return null;
+    }
+    
     /**
      * Returns the media file for the given ID.
      *
@@ -724,6 +752,14 @@ public class MediaFileDao extends AbstractDao {
         for (int id = minId; id <= maxId; id += batchSize) {
             update("delete from media_file where id between ? and ? and not present", id, id + batchSize);
         }
+    }
+
+    public int getSongCount(MediaFile album) {
+        return queryForInt("select count(1) from media_file where album=? and type in (?, ?, ?)", 0, 
+                album.getAlbumName(), 
+                MediaFile.MediaType.AUDIOBOOK.name(),
+                MediaFile.MediaType.MUSIC.name(),
+                MediaFile.MediaType.PODCAST.name());
     }
 
     private static class MediaFileMapper implements RowMapper<MediaFile> {

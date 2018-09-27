@@ -35,6 +35,11 @@ import java.util.List;
  */
 @Component
 public class RootUpnpProcessor extends UpnpContentProcessor <Container, Container> {
+
+    public RootUpnpProcessor() {
+        super("Container");
+    }
+    
     public Container createRootContainer() {
         StorageFolder root = new StorageFolder();
         root.setId(DispatchingContentDirectory.CONTAINER_ID_ROOT);

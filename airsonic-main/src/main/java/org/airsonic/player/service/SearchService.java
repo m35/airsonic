@@ -376,20 +376,20 @@ public class SearchService {
         return result;
     }
 
-    public <T> ParamSearchResult<T> searchByName(String name, int offset, int count, List<MusicFolder> folderList, Class<T> clazz) {
+    public <T> ParamSearchResult<T> searchByName(String name, int offset, int count, List<MusicFolder> folderList, String type) {
         IndexType indexType = null;
         String field = null;
-        if (clazz.isAssignableFrom(Album.class)) {
+        if ("Album".equals(type)) {
             indexType = IndexType.ALBUM_ID3;
             field = FIELD_ALBUM;
-        } else if (clazz.isAssignableFrom(Artist.class)) {
+        } else if ("Artist".equals(type)) {
             indexType = IndexType.ARTIST_ID3;
             field = FIELD_ARTIST;
-        } else if (clazz.isAssignableFrom(MediaFile.class)) {
+        } else if ("MediaFile".equals(type)) {
             indexType = IndexType.SONG;
             field = FIELD_TITLE;
         }
-        ParamSearchResult<T> result = new ParamSearchResult<T>();
+        ParamSearchResult result = new ParamSearchResult();
         // we only support album, artist, and song for now
         if (indexType == null || field == null) {
             return result;
@@ -416,14 +416,18 @@ public class SearchService {
             for (int i = start; i < end; i++) {
                 Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
                 switch (indexType) {
-                case ALBUM:
+                case ALBUM_ID3:
                 case SONG:
                     MediaFile mediaFile = mediaFileService.getMediaFile(Integer.valueOf(doc.get(FIELD_ID)));
-                    addIfNotNull(clazz.cast(mediaFile), result.getItems());
+                    if (mediaFile != null) {
+                        result.getItems().add(mediaFile);
+                    }
                     break;
                 case ARTIST_ID3:
                     Artist artist = artistDao.getArtist(Integer.valueOf(doc.get(FIELD_ID)));
-                    addIfNotNull(clazz.cast(artist), result.getItems());
+                    if (artist != null) {
+                        result.getItems().add(artist);
+                    }
                     break;
                 default:
                     break;
@@ -547,8 +551,8 @@ public class SearchService {
                 if (album.getName() != null) {
                     doc.add(new Field(FIELD_ALBUM, album.getName(), Field.Store.YES, Field.Index.ANALYZED));
                 }
-                if (album.getFolderId() != null) {
-                    doc.add(new NumericField(FIELD_FOLDER_ID, Field.Store.NO, true).setIntValue(album.getFolderId()));
+                if (album.getFolder() != null) {
+                    doc.add(new Field(FIELD_FOLDER, album.getFolder(), Field.Store.NO, Field.Index.NOT_ANALYZED_NO_NORMS));
                 }
 
                 return doc;

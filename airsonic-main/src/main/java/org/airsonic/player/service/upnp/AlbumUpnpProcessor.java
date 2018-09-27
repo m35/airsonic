@@ -55,6 +55,7 @@ public class AlbumUpnpProcessor extends UpnpContentProcessor <MediaFile, MediaFi
     SearchService searchService;
 
     public AlbumUpnpProcessor() {
+        super("Album");
         setRootId(DispatchingContentDirectory.CONTAINER_ID_ALBUM_PREFIX);
         setRootTitle("Albums");
     }

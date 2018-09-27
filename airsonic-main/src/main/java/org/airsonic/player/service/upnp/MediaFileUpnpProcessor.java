@@ -49,6 +49,7 @@ public class MediaFileUpnpProcessor extends UpnpContentProcessor <MediaFile, Med
     MediaFileDao mediaFileDao;
 
     public MediaFileUpnpProcessor() {
+        super("MediaFile");
         setRootId(DispatchingContentDirectory.CONTAINER_ID_FOLDER_PREFIX);
         setRootTitle("Folders");
     }

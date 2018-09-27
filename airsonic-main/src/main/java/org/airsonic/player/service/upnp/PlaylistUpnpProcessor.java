@@ -40,6 +40,7 @@ public class PlaylistUpnpProcessor extends UpnpContentProcessor <Playlist, Media
     private PlaylistService playlistService;
 
     public PlaylistUpnpProcessor() {
+        super("Playlist");
         setRootId(DispatchingContentDirectory.CONTAINER_ID_PLAYLIST_PREFIX);
         setRootTitle("Playlists");
     }

@@ -40,6 +40,7 @@ import java.util.List;
 public class GenreUpnpProcessor extends UpnpContentProcessor <Genre, MediaFile> {
 
     public GenreUpnpProcessor() {
+        super("Genre");
         setRootId(DispatchingContentDirectory.CONTAINER_ID_GENRE_PREFIX);
         setRootTitle("Genres");
     }

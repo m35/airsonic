@@ -31,7 +31,6 @@ import org.fourthline.cling.support.model.container.Container;
 import org.fourthline.cling.support.model.container.StorageFolder;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
 /**
@@ -45,6 +44,11 @@ public abstract class UpnpContentProcessor<T extends Object, U extends Object> {
 
     protected String rootTitle;
     protected String rootId;
+    protected final String type;
+
+    public UpnpContentProcessor(String type) {
+        this.type = type;
+    }
 
     /**
      * Browses the root metadata for a type.
@@ -127,11 +131,9 @@ public abstract class UpnpContentProcessor<T extends Object, U extends Object> {
         throws ContentDirectoryException {
         DIDLContent didl = new DIDLContent();
 
-        Class clazz =  (Class) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
-
         try {
             List<MusicFolder> allFolders = getDispatchingContentDirectory().getSettingsService().getAllMusicFolders();
-            ParamSearchResult<T> result = getDispatcher().getSearchService().searchByName(name, (int) firstResult, (int) maxResults, allFolders, clazz);
+            ParamSearchResult<T> result = getDispatcher().getSearchService().searchByName(name, (int) firstResult, (int) maxResults, allFolders, type);
             List<T> selectedItems = result.getItems();
             for (T item : selectedItems) {
                 addItem(didl, item);

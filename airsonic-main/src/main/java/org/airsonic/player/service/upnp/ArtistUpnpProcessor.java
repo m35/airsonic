@@ -46,6 +46,7 @@ public class ArtistUpnpProcessor extends UpnpContentProcessor <Artist, MediaFile
     SearchService searchService;
 
     public ArtistUpnpProcessor() {
+        super("Artist");
         setRootId(DispatchingContentDirectory.CONTAINER_ID_ARTIST_PREFIX);
         setRootTitle("Artists");
     }
@@ -80,7 +81,7 @@ public class ArtistUpnpProcessor extends UpnpContentProcessor <Artist, MediaFile
             // if the artist has more than one album, add in an option to
             // view the tracks in all the albums together
             MediaFile viewAll = new MediaFile();
-            viewAll.setName("- All Albums -");
+            viewAll.setTitle("- All Albums -");
             viewAll.setId(-1);
             viewAll.setComment(AlbumUpnpProcessor.ALL_BY_ARTIST + "_" + artist.getId());
             allAlbums.add(0, viewAll);

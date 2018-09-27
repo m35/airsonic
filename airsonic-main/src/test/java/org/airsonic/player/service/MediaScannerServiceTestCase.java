@@ -15,7 +15,6 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.Description;
 import org.junit.runners.model.Statement;
 import org.airsonic.player.TestCaseUtils;
-import org.airsonic.player.domain.Album;
 import org.airsonic.player.domain.Artist;
 import org.airsonic.player.util.HomeRule;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -92,9 +91,6 @@ public class MediaScannerServiceTestCase {
     private ArtistDao artistDao;
 
     @Autowired
-    private AlbumDao albumDao;
-
-    @Autowired
     private SettingsService settingsService;
 
     @Rule
@@ -139,7 +135,7 @@ public class MediaScannerServiceTestCase {
 
         System.out.println("--- List of all albums ---");
         System.out.println("name#artist");
-        List<Album> allAlbums = albumDao.getAlphabeticalAlbums(0, 0, true, true, musicFolderDao.getAllMusicFolders());
+        List<MediaFile> allAlbums = mediaFileDao.getAlphabeticalAlbums(0, 0, true, true, musicFolderDao.getAllMusicFolders());
         allAlbums.forEach(album -> System.out.println(album.getName() + "#" + album.getArtist()));
         Assert.assertEquals(5, allAlbums.size());
         System.out.println("--- *********************** ---");
@@ -201,12 +197,12 @@ public class MediaScannerServiceTestCase {
         Assert.assertEquals(1, artist.getAlbumCount());
 
         // Test that the album is correctly imported, along with its MusicBrainz release ID
-        List<Album> allAlbums = albumDao.getAlphabeticalAlbums(0, 0, true, true, folders);
+        List<MediaFile> allAlbums = mediaFileDao.getAlphabeticalAlbums(0, 0, true, true, folders);
         Assert.assertEquals(1, allAlbums.size());
-        Album album = allAlbums.get(0);
+        MediaFile album = allAlbums.get(0);
         Assert.assertEquals("TestAlbum", album.getName());
         Assert.assertEquals("TestArtist", album.getArtist());
-        Assert.assertEquals(1, album.getSongCount());
+        Assert.assertEquals(1, mediaFileDao.getSongCount(album));
         Assert.assertEquals("0820752d-1043-4572-ab36-2df3b5cc15fa", album.getMusicBrainzReleaseId());
         Assert.assertEquals(musicFolderFile.toPath().resolve("TestAlbum").toString(), album.getPath());
 
