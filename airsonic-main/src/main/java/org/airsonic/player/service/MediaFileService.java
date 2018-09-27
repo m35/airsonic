@@ -21,7 +21,6 @@ package org.airsonic.player.service;
 
 import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.Element;
-import org.airsonic.player.dao.AlbumDao;
 import org.airsonic.player.dao.MediaFileDao;
 import org.airsonic.player.domain.*;
 import org.airsonic.player.service.metadata.JaudiotaggerParser;
@@ -59,8 +58,6 @@ public class MediaFileService {
     private SettingsService settingsService;
     @Autowired
     private MediaFileDao mediaFileDao;
-    @Autowired
-    private AlbumDao albumDao;
     @Autowired
     private JaudiotaggerParser parser;
     @Autowired
@@ -295,8 +292,8 @@ public class MediaFileService {
      * @param musicFolders Only return albums in these folders.
      * @return Albums in alphabetical order.
      */
-    public List<MediaFile> getAlphabeticalAlbums(int offset, int count, boolean byArtist, List<MusicFolder> musicFolders) {
-        return mediaFileDao.getAlphabeticalAlbums(offset, count, byArtist, musicFolders);
+    public List<MediaFile> getAlphabeticalAlbums(int offset, int count, boolean byArtist, boolean ignoreCase, List<MusicFolder> musicFolders) {
+        return mediaFileDao.getAlphabeticalAlbums(offset, count, byArtist, ignoreCase, musicFolders);
     }
 
     /**
@@ -313,6 +310,10 @@ public class MediaFileService {
         return mediaFileDao.getAlbumsByYear(offset, count, fromYear, toYear, musicFolders);
     }
 
+    public MediaFile getAlbum(int id) {
+        return getMediaFile(id);
+    }
+    
     /**
      * Returns albums in a genre.
      *
@@ -698,13 +699,6 @@ public class MediaFileService {
             parent.setPlayCount(parent.getPlayCount() + 1);
             updateMediaFile(parent);
         }
-
-        Album album = albumDao.getAlbum(file.getAlbumArtist(), file.getAlbumName());
-        if (album != null) {
-            album.setLastPlayed(now);
-            album.setPlayCount(album.getPlayCount() + 1);
-            albumDao.createOrUpdateAlbum(album);
-        }
     }
 
     public int getAlbumCount(List<MusicFolder> musicFolders) {
@@ -721,10 +715,6 @@ public class MediaFileService {
 
     public void clearMemoryCache() {
         mediaFileMemoryCache.removeAll();
-    }
-
-    public void setAlbumDao(AlbumDao albumDao) {
-        this.albumDao = albumDao;
     }
 
     public void setParser(JaudiotaggerParser parser) {

@@ -100,6 +100,35 @@ public class MediaFileDao extends AbstractDao {
                      artist, album, MediaFile.MediaType.MUSIC.name(), MediaFile.MediaType.AUDIOBOOK.name(), MediaFile.MediaType.PODCAST.name());
     }
 
+    public MediaFile getAlbum(int id) {
+        return getMediaFile(id);
+    }
+
+    public MediaFile getAlbum(String artist, String album) {
+        Map<String, Object> args = new HashMap<String, Object>() {{
+            put("artist", artist);
+            put("album", album);
+            put("type", MediaFile.MediaType.ALBUM.name());
+        }};
+        return namedQueryOne("select " + QUERY_COLUMNS + " from media_file where type = :type and album_artist = :artist " +
+                             "and album = :album and present", rowMapper, args);
+        
+    }
+
+    public List<MediaFile> getAlbumsForArtist(final String artist, final List<MusicFolder> musicFolders) {
+        if (musicFolders.isEmpty()) {
+            return Collections.emptyList();
+        }
+        Map<String, Object> args = new HashMap<String, Object>() {{
+            put("artist", artist);
+            put("folders", MusicFolder.toIdList(musicFolders));
+        }};
+        return namedQuery("select " + QUERY_COLUMNS
+                          + " from media_file where artist = :artist and present and folder_id in (:folders) " +
+                          "order by name",
+                          rowMapper, args);
+    }    
+    
     public List<MediaFile> getVideos(final int count, final int offset, final List<MusicFolder> musicFolders) {
         if (musicFolders.isEmpty()) {
             return Collections.emptyList();
@@ -301,7 +330,7 @@ public class MediaFileDao extends AbstractDao {
      * @param musicFolders Only return albums in these folders.
      * @return Albums in alphabetical order.
      */
-    public List<MediaFile> getAlphabeticalAlbums(final int offset, final int count, boolean byArtist, final List<MusicFolder> musicFolders) {
+    public List<MediaFile> getAlphabeticalAlbums(final int offset, final int count, boolean byArtist, boolean ignoreCase, final List<MusicFolder> musicFolders) {
         if (musicFolders.isEmpty()) {
             return Collections.emptyList();
         }
@@ -312,7 +341,12 @@ public class MediaFileDao extends AbstractDao {
             put("offset", offset);
         }};
 
-        String orderBy = byArtist ? "artist, album" : "album";
+        String orderBy;
+        if (ignoreCase) {
+            orderBy = byArtist ? "LOWER(artist),  LOWER(album)" : "LOWER(album)";
+        } else {
+            orderBy = byArtist ? "artist, album" : "album";
+        }
         return namedQuery("select " + QUERY_COLUMNS
                           + " from media_file where type = :type and folder in (:folders) and present " +
                           "order by " + orderBy + " limit :count offset :offset", rowMapper, args);
@@ -656,6 +690,10 @@ public class MediaFileDao extends AbstractDao {
 
     public void unstarMediaFile(int id, String username) {
         update("delete from starred_media_file where media_file_id=? and username=?", id, username);
+    }
+
+    public Date getAlbumStarredDate(int id, String username) {
+        return getMediaFileStarredDate(id, username);
     }
 
     public Date getMediaFileStarredDate(int id, String username) {

@@ -34,7 +34,7 @@ public class SearchResult {
 
     private final List<MediaFile> mediaFiles = new ArrayList<MediaFile>();
     private final List<Artist> artists = new ArrayList<Artist>();
-    private final List<Album> albums = new ArrayList<Album>();
+    private final List<MediaFile> albums = new ArrayList<MediaFile>();
 
     private int offset;
     private int totalHits;
@@ -47,7 +47,7 @@ public class SearchResult {
         return artists;
     }
 
-    public List<Album> getAlbums() {
+    public List<MediaFile> getAlbums() {
         return albums;
     }
 

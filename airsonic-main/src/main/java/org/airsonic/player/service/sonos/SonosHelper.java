@@ -387,7 +387,7 @@ public class SonosHelper {
                 total = mediaFileService.getPlayedAlbumCount(musicFolders);
                 break;
             case ALPHABETICAL:
-                albums = mediaFileService.getAlphabeticalAlbums(offset, count, true, musicFolders);
+                albums = mediaFileService.getAlphabeticalAlbums(offset, count, true, false, musicFolders);
                 total = mediaFileService.getAlbumCount(musicFolders);
                 break;
         }

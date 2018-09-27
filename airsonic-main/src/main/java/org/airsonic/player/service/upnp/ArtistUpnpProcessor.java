@@ -20,7 +20,6 @@
 package org.airsonic.player.service.upnp;
 
 import org.airsonic.player.dao.ArtistDao;
-import org.airsonic.player.domain.Album;
 import org.airsonic.player.domain.Artist;
 import org.airsonic.player.domain.MusicFolder;
 import org.airsonic.player.service.SearchService;
@@ -31,13 +30,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import org.airsonic.player.domain.MediaFile;
 
 /**
  * @author Allen Petersen
  * @version $Id$
  */
 @Service
-public class ArtistUpnpProcessor extends UpnpContentProcessor <Artist, Album> {
+public class ArtistUpnpProcessor extends UpnpContentProcessor <Artist, MediaFile> {
 
     @Autowired
     private ArtistDao artistDao;
@@ -73,13 +73,13 @@ public class ArtistUpnpProcessor extends UpnpContentProcessor <Artist, Album> {
         return getArtistDao().getArtist(Integer.parseInt(id));
     }
 
-    public  List<Album> getChildren(Artist artist) {
+    public  List<MediaFile> getChildren(Artist artist) {
         List<MusicFolder> allFolders = getDispatcher().getSettingsService().getAllMusicFolders();
-        List<Album> allAlbums = getAlbumProcessor().getAlbumDao().getAlbumsForArtist(artist.getName(), allFolders);
+        List<MediaFile> allAlbums = getAlbumProcessor().getAlbumDao().getAlbumsForArtist(artist.getName(), allFolders);
         if (allAlbums.size() > 1) {
             // if the artist has more than one album, add in an option to
             // view the tracks in all the albums together
-            Album viewAll = new Album();
+            MediaFile viewAll = new MediaFile();
             viewAll.setName("- All Albums -");
             viewAll.setId(-1);
             viewAll.setComment(AlbumUpnpProcessor.ALL_BY_ARTIST + "_" + artist.getId());
@@ -88,7 +88,7 @@ public class ArtistUpnpProcessor extends UpnpContentProcessor <Artist, Album> {
         return allAlbums;
     }
 
-    public void addChild(DIDLContent didl, Album album) throws Exception {
+    public void addChild(DIDLContent didl, MediaFile album) throws Exception {
         didl.addContainer(getAlbumProcessor().createContainer(album));
     }
 

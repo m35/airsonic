@@ -19,9 +19,7 @@
 */
 package org.airsonic.player.service.upnp;
 
-import org.airsonic.player.dao.AlbumDao;
 import org.airsonic.player.dao.MediaFileDao;
-import org.airsonic.player.domain.Album;
 import org.airsonic.player.domain.CoverArtScheme;
 import org.airsonic.player.domain.MediaFile;
 import org.airsonic.player.domain.MusicFolder;
@@ -45,13 +43,13 @@ import java.util.List;
  * @version $Id$
  */
 @Service
-public class AlbumUpnpProcessor extends UpnpContentProcessor <Album, MediaFile> {
+public class AlbumUpnpProcessor extends UpnpContentProcessor <MediaFile, MediaFile> {
 
     public static final String ALL_BY_ARTIST = "allByArtist";
     public static final String ALL_RECENT = "allRecent";
 
     @Autowired
-    AlbumDao albumDao;
+    MediaFileDao albumDao;
 
     @Autowired
     SearchService searchService;
@@ -68,14 +66,14 @@ public class AlbumUpnpProcessor extends UpnpContentProcessor <Album, MediaFile> 
         DIDLContent didl = new DIDLContent();
 
         List<MusicFolder> allFolders = getDispatchingContentDirectory().getSettingsService().getAllMusicFolders();
-        List<Album> selectedItems = getAlbumDao().getAlphabeticalAlbums((int) firstResult, (int) maxResults, false, true, allFolders);
-        for (Album item : selectedItems) {
+        List<MediaFile> selectedItems = getAlbumDao().getAlphabeticalAlbums((int) firstResult, (int) maxResults, false, true, allFolders);
+        for (MediaFile item : selectedItems) {
             addItem(didl, item);
         }
 
         return createBrowseResult(didl, (int) didl.getCount(), getAllItemsSize());
     }
-    public Container createContainer(Album album) throws Exception {
+    public Container createContainer(MediaFile album) throws Exception {
         MusicAlbum container = new MusicAlbum();
 
         if (album.getId() == -1) {
@@ -94,15 +92,15 @@ public class AlbumUpnpProcessor extends UpnpContentProcessor <Album, MediaFile> 
         return container;
     }
 
-    public List<Album> getAllItems() {
+    public List<MediaFile> getAllItems() {
         List<MusicFolder> allFolders = getDispatchingContentDirectory().getSettingsService().getAllMusicFolders();
         return getAlbumDao().getAlphabeticalAlbums(0, Integer.MAX_VALUE, false, true, allFolders);
     }
 
-    public Album getItemById(String id) throws Exception {
-        Album returnValue = null;
+    public MediaFile getItemById(String id) throws Exception {
+        MediaFile returnValue = null;
         if (id.startsWith(ALL_BY_ARTIST) || id.equalsIgnoreCase(ALL_RECENT)) {
-            returnValue = new Album();
+            returnValue = new MediaFile();
             returnValue.setId(-1);
             returnValue.setComment(id);
         } else {
@@ -111,17 +109,17 @@ public class AlbumUpnpProcessor extends UpnpContentProcessor <Album, MediaFile> 
         return returnValue;
     }
 
-    public List<MediaFile> getChildren(Album album) throws Exception {
+    public List<MediaFile> getChildren(MediaFile album) throws Exception {
         List<MediaFile> allFiles = getMediaFileDao().getSongsForAlbum(album.getArtist(), album.getName());
         if (album.getId() == -1) {
-            List<Album> albumList = null;
+            List<MediaFile> albumList = null;
             if (album.getComment().startsWith(ALL_BY_ARTIST)) {
                 ArtistUpnpProcessor ap = getDispatcher().getArtistProcessor();
                 albumList =  ap.getChildren(ap.getItemById(album.getComment().replaceAll(ALL_BY_ARTIST + "_", "")));
             } else if (album.getComment().equalsIgnoreCase(ALL_RECENT)) {
                 albumList = getDispatcher().getRecentAlbumProcessor().getAllItems();
             }
-            for (Album a: albumList) {
+            for (MediaFile a: albumList) {
                 if (a.getId() != -1) {
                     allFiles.addAll(getMediaFileDao().getSongsForAlbum(a.getArtist(), a.getName()));
                 }
@@ -151,10 +149,10 @@ public class AlbumUpnpProcessor extends UpnpContentProcessor <Album, MediaFile> 
         return new PersonWithRole[] { new PersonWithRole(artist) };
     }
 
-    public AlbumDao getAlbumDao() {
+    public MediaFileDao getAlbumDao() {
         return albumDao;
     }
-    public void setAlbumDao(AlbumDao albumDao) {
+    public void setAlbumDao(MediaFileDao albumDao) {
         this.albumDao = albumDao;
     }
 

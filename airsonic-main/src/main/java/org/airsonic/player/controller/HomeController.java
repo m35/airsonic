@@ -200,7 +200,7 @@ public class HomeController  {
 
     private List<Album> getAlphabetical(int offset, int count, boolean byArtist, List<MusicFolder> musicFolders) throws IOException {
         List<Album> result = new ArrayList<>();
-        for (MediaFile file : mediaFileService.getAlphabeticalAlbums(offset, count, byArtist, musicFolders)) {
+        for (MediaFile file : mediaFileService.getAlphabeticalAlbums(offset, count, byArtist, false, musicFolders)) {
             result.add(createAlbum(file));
         }
         return result;

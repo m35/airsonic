@@ -20,7 +20,6 @@
 package org.airsonic.player.controller;
 
 import org.airsonic.player.command.MusicFolderSettingsCommand;
-import org.airsonic.player.dao.AlbumDao;
 import org.airsonic.player.dao.ArtistDao;
 import org.airsonic.player.dao.MediaFileDao;
 import org.airsonic.player.domain.MusicFolder;
@@ -54,8 +53,6 @@ public class MusicFolderSettingsController {
     private MediaScannerService mediaScannerService;
     @Autowired
     private ArtistDao artistDao;
-    @Autowired
-    private AlbumDao albumDao;
     @Autowired
     private MediaFileDao mediaFileDao;
 
@@ -94,7 +91,6 @@ public class MusicFolderSettingsController {
 
     private void expunge() {
         artistDao.expunge();
-        albumDao.expunge();
         mediaFileDao.expunge();
     }
 

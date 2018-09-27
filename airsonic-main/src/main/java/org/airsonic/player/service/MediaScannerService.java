@@ -19,7 +19,6 @@
  */
 package org.airsonic.player.service;
 
-import org.airsonic.player.dao.AlbumDao;
 import org.airsonic.player.dao.ArtistDao;
 import org.airsonic.player.dao.MediaFileDao;
 import org.airsonic.player.domain.*;
@@ -63,8 +62,6 @@ public class MediaScannerService {
     private MediaFileDao mediaFileDao;
     @Autowired
     private ArtistDao artistDao;
-    @Autowired
-    private AlbumDao albumDao;
     private int scanCount;
 
     @PostConstruct
@@ -201,8 +198,6 @@ public class MediaScannerService {
             mediaFileDao.markNonPresent(lastScanned);
             LOG.info("Marking non-present artists.");
             artistDao.markNonPresent(lastScanned);
-            LOG.info("Marking non-present albums.");
-            albumDao.markNonPresent(lastScanned);
 
             // Update statistics
             statistics.incrementArtists(albumCount.size());
@@ -284,30 +279,22 @@ public class MediaScannerService {
         }
     }
 
-    private void updateAlbum(MediaFile file, MusicFolder musicFolder, Date lastScanned, Map<String, Integer> albumCount) {
-        String artist = file.getAlbumArtist() != null ? file.getAlbumArtist() : file.getArtist();
-        if (file.getAlbumName() == null || artist == null || file.getParentPath() == null || !file.isAudio()) {
+    private void updateAlbum(MediaFile album, MusicFolder musicFolder, Date lastScanned, Map<String, Integer> albumCount) {
+        String artist = album.getAlbumArtist() != null ? album.getAlbumArtist() : album.getArtist();
+        if (album.getAlbumName() == null || artist == null || album.getParentPath() == null || !album.isAudio()) {
             return;
         }
 
-        Album album = albumDao.getAlbumForFile(file);
-        if (album == null) {
-            album = new Album();
-            album.setPath(file.getParentPath());
-            album.setName(file.getAlbumName());
-            album.setArtist(artist);
-            album.setCreated(file.getChanged());
+        if (album.getMusicBrainzReleaseId() != null) {
+            album.setMusicBrainzReleaseId(album.getMusicBrainzReleaseId());
         }
-        if (file.getMusicBrainzReleaseId() != null) {
-            album.setMusicBrainzReleaseId(file.getMusicBrainzReleaseId());
+        if (album.getYear() != null) {
+            album.setYear(album.getYear());
         }
-        if (file.getYear() != null) {
-            album.setYear(file.getYear());
+        if (album.getGenre() != null) {
+            album.setGenre(album.getGenre());
         }
-        if (file.getGenre() != null) {
-            album.setGenre(file.getGenre());
-        }
-        MediaFile parent = mediaFileService.getParentOf(file);
+        MediaFile parent = mediaFileService.getParentOf(album);
         if (parent != null && parent.getCoverArtPath() != null) {
             album.setCoverArtPath(parent.getCoverArtPath());
         }
@@ -320,23 +307,23 @@ public class MediaScannerService {
             Integer n = albumCount.get(artist);
             albumCount.put(artist, n == null ? 1 : n + 1);
         }
-        if (file.getDurationSeconds() != null) {
-            album.setDurationSeconds(album.getDurationSeconds() + file.getDurationSeconds());
+        if (album.getDurationSeconds() != null) {
+            album.setDurationSeconds(album.getDurationSeconds() + album.getDurationSeconds());
         }
-        if (file.isAudio()) {
+        if (album.isAudio()) {
             album.setSongCount(album.getSongCount() + 1);
         }
         album.setLastScanned(lastScanned);
         album.setPresent(true);
-        albumDao.createOrUpdateAlbum(album);
+        mediaFileDao.createOrUpdateMediaFile(album);
         if (firstEncounter) {
             searchService.index(album);
         }
 
         // Update the file's album artist, if necessary.
-        if (!ObjectUtils.equals(album.getArtist(), file.getAlbumArtist())) {
-            file.setAlbumArtist(album.getArtist());
-            mediaFileDao.createOrUpdateMediaFile(file);
+        if (!ObjectUtils.equals(album.getArtist(), album.getAlbumArtist())) {
+            album.setAlbumArtist(album.getArtist());
+            mediaFileDao.createOrUpdateMediaFile(album);
         }
     }
 
@@ -429,10 +416,6 @@ public class MediaScannerService {
 
     public void setArtistDao(ArtistDao artistDao) {
         this.artistDao = artistDao;
-    }
-
-    public void setAlbumDao(AlbumDao albumDao) {
-        this.albumDao = albumDao;
     }
 
     public void setPlaylistService(PlaylistService playlistService) {

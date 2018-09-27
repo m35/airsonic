@@ -20,7 +20,6 @@
 package org.airsonic.player.service;
 
 import com.google.common.collect.Lists;
-import org.airsonic.player.dao.AlbumDao;
 import org.airsonic.player.dao.ArtistDao;
 import org.airsonic.player.domain.*;
 import org.airsonic.player.util.FileUtil;
@@ -87,8 +86,6 @@ public class SearchService {
     private MediaFileService mediaFileService;
     @Autowired
     private ArtistDao artistDao;
-    @Autowired
-    private AlbumDao albumDao;
 
     private IndexWriter artistWriter;
     private IndexWriter artistId3Writer;
@@ -134,7 +131,7 @@ public class SearchService {
         }
     }
 
-    public void index(Album album) {
+    public void indexAlbum(MediaFile album) {
         try {
             albumId3Writer.addDocument(ALBUM_ID3.createDocument(album));
         } catch (Exception x) {
@@ -208,7 +205,7 @@ public class SearchService {
                         addIfNotNull(artist, result.getArtists());
                         break;
                     case ALBUM_ID3:
-                        Album album = albumDao.getAlbum(Integer.valueOf(doc.get(FIELD_ID)));
+                        MediaFile album = mediaFileService.getMediaFile(Integer.valueOf(doc.get(FIELD_ID)));
                         addIfNotNull(album, result.getAlbums());
                         break;
                     default:
@@ -343,8 +340,8 @@ public class SearchService {
      * @param musicFolders Only return albums from these folders.
      * @return List of random albums.
      */
-    public List<Album> getRandomAlbumsId3(int count, List<MusicFolder> musicFolders) {
-        List<Album> result = new ArrayList<Album>();
+    public List<MediaFile> getRandomAlbumsId3(int count, List<MusicFolder> musicFolders) {
+        List<MediaFile> result = new ArrayList<MediaFile>();
 
         IndexReader reader = null;
         try {
@@ -365,7 +362,7 @@ public class SearchService {
                 Document doc = searcher.doc(scoreDocs.remove(index).doc);
                 int id = Integer.valueOf(doc.get(FIELD_ID));
                 try {
-                    addIfNotNull(albumDao.getAlbum(id), result);
+                    addIfNotNull(mediaFileService.getAlbum(id), result);
                 } catch (Exception x) {
                     LOG.warn("Failed to get album file " + id, x);
                 }
@@ -419,6 +416,7 @@ public class SearchService {
             for (int i = start; i < end; i++) {
                 Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
                 switch (indexType) {
+                case ALBUM:
                 case SONG:
                     MediaFile mediaFile = mediaFileService.getMediaFile(Integer.valueOf(doc.get(FIELD_ID)));
                     addIfNotNull(clazz.cast(mediaFile), result.getItems());
@@ -426,10 +424,6 @@ public class SearchService {
                 case ARTIST_ID3:
                     Artist artist = artistDao.getArtist(Integer.valueOf(doc.get(FIELD_ID)));
                     addIfNotNull(clazz.cast(artist), result.getItems());
-                    break;
-                case ALBUM_ID3:
-                    Album album = albumDao.getAlbum(Integer.valueOf(doc.get(FIELD_ID)));
-                    addIfNotNull(clazz.cast(album), result.getItems());
                     break;
                 default:
                     break;
@@ -492,10 +486,6 @@ public class SearchService {
         this.artistDao = artistDao;
     }
 
-    public void setAlbumDao(AlbumDao albumDao) {
-        this.albumDao = albumDao;
-    }
-
     public static enum IndexType {
 
         SONG(new String[]{FIELD_TITLE, FIELD_ARTIST}, FIELD_TITLE) {
@@ -547,7 +537,7 @@ public class SearchService {
 
         ALBUM_ID3(new String[]{FIELD_ALBUM, FIELD_ARTIST, FIELD_FOLDER_ID}, FIELD_ALBUM) {
             @Override
-            public Document createDocument(Album album) {
+            public Document createDocument(MediaFile album) {
                 Document doc = new Document();
                 doc.add(new NumericField(FIELD_ID, Field.Store.YES, false).setIntValue(album.getId()));
 
@@ -614,10 +604,6 @@ public class SearchService {
         }
 
         protected Document createDocument(Artist artist, MusicFolder musicFolder) {
-            throw new UnsupportedOperationException();
-        }
-
-        protected Document createDocument(Album album) {
             throw new UnsupportedOperationException();
         }
 

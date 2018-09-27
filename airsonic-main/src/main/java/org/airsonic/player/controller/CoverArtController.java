@@ -19,7 +19,6 @@
  */
 package org.airsonic.player.controller;
 
-import org.airsonic.player.dao.AlbumDao;
 import org.airsonic.player.dao.ArtistDao;
 import org.airsonic.player.domain.*;
 import org.airsonic.player.service.*;
@@ -81,8 +80,6 @@ public class CoverArtController implements LastModified {
     private PodcastService podcastService;
     @Autowired
     private ArtistDao artistDao;
-    @Autowired
-    private AlbumDao albumDao;
     @Autowired
     private JaudiotaggerParser jaudiotaggerParser;
     private Semaphore semaphore;
@@ -154,7 +151,7 @@ public class CoverArtController implements LastModified {
     }
 
     private CoverArtRequest createAlbumCoverArtRequest(int id) {
-        Album album = albumDao.getAlbum(id);
+        MediaFile album = mediaFileService.getMediaFile(id);
         return album == null ? null : new AlbumCoverArtRequest(album);
     }
 
@@ -442,9 +439,9 @@ public class CoverArtController implements LastModified {
 
     private class AlbumCoverArtRequest extends CoverArtRequest {
 
-        private final Album album;
+        private final MediaFile album;
 
-        private AlbumCoverArtRequest(Album album) {
+        private AlbumCoverArtRequest(MediaFile album) {
             super(album.getCoverArtPath());
             this.album = album;
         }

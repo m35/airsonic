@@ -293,16 +293,6 @@ public class LastFmService {
     /**
      * Returns album notes and images.
      *
-     * @param album The album.
-     * @return Album notes.
-     */
-    public AlbumNotes getAlbumNotes(org.airsonic.player.domain.Album album) {
-        return getAlbumNotes(getCanonicalArtistName(album.getArtist()), album.getName());
-    }
-
-    /**
-     * Returns album notes and images.
-     *
      * @param artist The artist name.
      * @param album The album name.
      * @return Album notes.

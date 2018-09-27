@@ -18,7 +18,6 @@
   Based upon Subsonic, Copyright 2009 (C) Sindre Mehus
 */
 package org.airsonic.player.service.upnp;
-import org.airsonic.player.domain.Album;
 import org.airsonic.player.domain.MusicFolder;
 import org.airsonic.player.util.Util;
 import org.fourthline.cling.support.model.BrowseResult;
@@ -27,6 +26,7 @@ import org.fourthline.cling.support.model.SortCriterion;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import org.airsonic.player.domain.MediaFile;
 
 /**
  * @author Allen Petersen
@@ -48,15 +48,15 @@ public class RecentAlbumUpnpProcessor extends AlbumUpnpProcessor {
         // AlbumUpnpProcessor overrides browseRoot() with an optimization;
         // this restores the default behavior for the subclass.
         DIDLContent didl = new DIDLContent();
-        List<Album> allItems = getAllItems();
+        List<MediaFile> allItems = getAllItems();
         if (filter != null) {
             // filter items (not implemented yet)
         }
         if (orderBy != null) {
             // sort items (not implemented yet)
         }
-        List<Album> selectedItems = Util.subList(allItems, firstResult, maxResults);
-        for (Album item : selectedItems) {
+        List<MediaFile> selectedItems = Util.subList(allItems, firstResult, maxResults);
+        for (MediaFile item : selectedItems) {
             addItem(didl, item);
         }
 
@@ -64,13 +64,13 @@ public class RecentAlbumUpnpProcessor extends AlbumUpnpProcessor {
     }
 
     @Override
-    public List<Album> getAllItems() {
+    public List<MediaFile> getAllItems() {
         List<MusicFolder> allFolders = getDispatchingContentDirectory().getSettingsService().getAllMusicFolders();
-        List<Album> recentAlbums = getAlbumDao().getNewestAlbums(0, RECENT_COUNT, allFolders);
+        List<MediaFile> recentAlbums = getAlbumDao().getNewestAlbums(0, RECENT_COUNT, allFolders);
         if (recentAlbums.size() > 1) {
             // if there is more than one recent album, add in an option to
             // view the tracks in all the recent albums together
-            Album viewAll = new Album();
+            MediaFile viewAll = new MediaFile();
             viewAll.setName("- All Albums -");
             viewAll.setId(-1);
             viewAll.setComment(AlbumUpnpProcessor.ALL_RECENT);
