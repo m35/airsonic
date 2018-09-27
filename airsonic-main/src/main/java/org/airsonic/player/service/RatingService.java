@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import org.airsonic.player.domain.Album;
 
 /**
  * Provides services for user ratings.
@@ -53,13 +54,13 @@ public class RatingService {
      * @param musicFolders Only return albums in these folders.
      * @return The highest rated albums.
      */
-    public List<MediaFile> getHighestRatedAlbums(int offset, int count, List<MusicFolder> musicFolders) {
+    public List<Album> getHighestRatedAlbums(int offset, int count, List<MusicFolder> musicFolders) {
         List<String> highestRated = ratingDao.getHighestRatedAlbums(offset, count, musicFolders);
-        List<MediaFile> result = new ArrayList<MediaFile>();
+        List<Album> result = new ArrayList<Album>();
         for (String path : highestRated) {
             File file = new File(path);
             if (FileUtil.exists(file) && securityService.isReadAllowed(file)) {
-                result.add(mediaFileService.getMediaFile(path));
+                result.add(mediaFileService.getAlbum(path));
             }
         }
         return result;

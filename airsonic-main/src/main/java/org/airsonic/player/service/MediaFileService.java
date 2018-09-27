@@ -137,6 +137,10 @@ public class MediaFileService {
     public MediaFile getMediaFile(String pathName) {
         return getMediaFile(new File(pathName));
     }
+    
+    public Album getAlbum(String pathName) {
+        return albumDao.getAlbumForFile(getMediaFile(pathName));
+    }
 
     // TODO: Optimize with memory caching.
     public MediaFile getMediaFile(int id) {
@@ -245,8 +249,8 @@ public class MediaFileService {
      * @param musicFolders Only return albums in these folders.
      * @return The most frequently played albums.
      */
-    public List<MediaFile> getMostFrequentlyPlayedAlbums(int offset, int count, List<MusicFolder> musicFolders) {
-        return mediaFileDao.getMostFrequentlyPlayedAlbums(offset, count, musicFolders);
+    public List<Album> getMostFrequentlyPlayedAlbums(int offset, int count, List<MusicFolder> musicFolders) {
+        return albumDao.getMostFrequentlyPlayedAlbums(offset, count, musicFolders);
     }
 
     /**
@@ -257,8 +261,8 @@ public class MediaFileService {
      * @param musicFolders Only return albums in these folders.
      * @return The most recently played albums.
      */
-    public List<MediaFile> getMostRecentlyPlayedAlbums(int offset, int count, List<MusicFolder> musicFolders) {
-        return mediaFileDao.getMostRecentlyPlayedAlbums(offset, count, musicFolders);
+    public List<Album> getMostRecentlyPlayedAlbums(int offset, int count, List<MusicFolder> musicFolders) {
+        return albumDao.getMostRecentlyPlayedAlbums(offset, count, musicFolders);
     }
 
     /**
@@ -269,8 +273,8 @@ public class MediaFileService {
      * @param musicFolders Only return albums in these folders.
      * @return The most recently added albums.
      */
-    public List<MediaFile> getNewestAlbums(int offset, int count, List<MusicFolder> musicFolders) {
-        return mediaFileDao.getNewestAlbums(offset, count, musicFolders);
+    public List<Album> getNewestAlbums(int offset, int count, List<MusicFolder> musicFolders) {
+        return albumDao.getNewestAlbums(offset, count, musicFolders);
     }
 
     /**
@@ -282,8 +286,8 @@ public class MediaFileService {
      * @param musicFolders Only return albums from these folders.
      * @return The most recently starred albums for this user.
      */
-    public List<MediaFile> getStarredAlbums(int offset, int count, String username, List<MusicFolder> musicFolders) {
-        return mediaFileDao.getStarredAlbums(offset, count, username, musicFolders);
+    public List<Album> getStarredAlbums(int offset, int count, String username, List<MusicFolder> musicFolders) {
+        return albumDao.getStarredAlbums(offset, count, username, musicFolders);
     }
 
     /**
@@ -295,8 +299,8 @@ public class MediaFileService {
      * @param musicFolders Only return albums in these folders.
      * @return Albums in alphabetical order.
      */
-    public List<MediaFile> getAlphabeticalAlbums(int offset, int count, boolean byArtist, List<MusicFolder> musicFolders) {
-        return mediaFileDao.getAlphabeticalAlbums(offset, count, byArtist, musicFolders);
+    public List<Album> getAlphabeticalAlbums(int offset, int count, boolean byArtist, List<MusicFolder> musicFolders) {
+        return albumDao.getAlphabeticalAlbums(offset, count, byArtist, true, musicFolders);
     }
 
     /**
@@ -309,8 +313,8 @@ public class MediaFileService {
      * @param musicFolders Only return albums in these folders.
      * @return Albums in the year range.
      */
-    public List<MediaFile> getAlbumsByYear(int offset, int count, int fromYear, int toYear, List<MusicFolder> musicFolders) {
-        return mediaFileDao.getAlbumsByYear(offset, count, fromYear, toYear, musicFolders);
+    public List<Album> getAlbumsByYear(int offset, int count, int fromYear, int toYear, List<MusicFolder> musicFolders) {
+        return albumDao.getAlbumsByYear(offset, count, fromYear, toYear, musicFolders);
     }
 
     /**
@@ -322,8 +326,8 @@ public class MediaFileService {
      * @param musicFolders Only return albums in these folders.
      * @return Albums in the genre.
      */
-    public List<MediaFile> getAlbumsByGenre(int offset, int count, String genre, List<MusicFolder> musicFolders) {
-        return mediaFileDao.getAlbumsByGenre(offset, count, genre, musicFolders);
+    public List<Album> getAlbumsByGenre(int offset, int count, String genre, List<MusicFolder> musicFolders) {
+        return albumDao.getAlbumsByGenre(offset, count, genre, musicFolders);
     }
 
     /**

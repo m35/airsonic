@@ -140,7 +140,7 @@ public class HomeController  {
 
     private List<Album> getHighestRated(int offset, int count, List<MusicFolder> musicFolders) {
         List<Album> result = new ArrayList<>();
-        for (MediaFile mediaFile : ratingService.getHighestRatedAlbums(offset, count, musicFolders)) {
+        for (org.airsonic.player.domain.Album mediaFile : ratingService.getHighestRatedAlbums(offset, count, musicFolders)) {
             Album album = createAlbum(mediaFile);
             album.setRating((int) Math.round(ratingService.getAverageRating(mediaFile) * 10.0D));
             result.add(album);
@@ -150,7 +150,7 @@ public class HomeController  {
 
     private List<Album> getMostFrequent(int offset, int count, List<MusicFolder> musicFolders) {
         List<Album> result = new ArrayList<>();
-        for (MediaFile mediaFile : mediaFileService.getMostFrequentlyPlayedAlbums(offset, count, musicFolders)) {
+        for (org.airsonic.player.domain.Album mediaFile : mediaFileService.getMostFrequentlyPlayedAlbums(offset, count, musicFolders)) {
             Album album = createAlbum(mediaFile);
             album.setPlayCount(mediaFile.getPlayCount());
             result.add(album);
@@ -160,7 +160,7 @@ public class HomeController  {
 
     private List<Album> getMostRecent(int offset, int count, List<MusicFolder> musicFolders) {
         List<Album> result = new ArrayList<>();
-        for (MediaFile mediaFile : mediaFileService.getMostRecentlyPlayedAlbums(offset, count, musicFolders)) {
+        for (org.airsonic.player.domain.Album mediaFile : mediaFileService.getMostRecentlyPlayedAlbums(offset, count, musicFolders)) {
             Album album = createAlbum(mediaFile);
             album.setLastPlayed(mediaFile.getLastPlayed());
             result.add(album);
@@ -170,11 +170,11 @@ public class HomeController  {
 
     private List<Album> getNewest(int offset, int count, List<MusicFolder> musicFolders) throws IOException {
         List<Album> result = new ArrayList<>();
-        for (MediaFile file : mediaFileService.getNewestAlbums(offset, count, musicFolders)) {
+        for (org.airsonic.player.domain.Album file : mediaFileService.getNewestAlbums(offset, count, musicFolders)) {
             Album album = createAlbum(file);
             Date created = file.getCreated();
             if (created == null) {
-                created = file.getChanged();
+                created = file.getLastPlayed();
             }
             album.setCreated(created);
             result.add(album);
@@ -184,7 +184,7 @@ public class HomeController  {
 
     private List<Album> getStarred(int offset, int count, String username, List<MusicFolder> musicFolders) throws IOException {
         List<Album> result = new ArrayList<>();
-        for (MediaFile file : mediaFileService.getStarredAlbums(offset, count, username, musicFolders)) {
+        for (org.airsonic.player.domain.Album file : mediaFileService.getStarredAlbums(offset, count, username, musicFolders)) {
             result.add(createAlbum(file));
         }
         return result;
@@ -192,7 +192,7 @@ public class HomeController  {
 
     private List<Album> getRandom(int count, List<MusicFolder> musicFolders) throws IOException {
         List<Album> result = new ArrayList<>();
-        for (MediaFile file : searchService.getRandomAlbums(count, musicFolders)) {
+        for (org.airsonic.player.domain.Album file : searchService.getRandomAlbums(count, musicFolders)) {
             result.add(createAlbum(file));
         }
         return result;
@@ -200,7 +200,7 @@ public class HomeController  {
 
     private List<Album> getAlphabetical(int offset, int count, boolean byArtist, List<MusicFolder> musicFolders) throws IOException {
         List<Album> result = new ArrayList<>();
-        for (MediaFile file : mediaFileService.getAlphabeticalAlbums(offset, count, byArtist, musicFolders)) {
+        for (org.airsonic.player.domain.Album file : mediaFileService.getAlphabeticalAlbums(offset, count, byArtist, musicFolders)) {
             result.add(createAlbum(file));
         }
         return result;
@@ -208,7 +208,7 @@ public class HomeController  {
 
     private List<Album> getByYear(int offset, int count, int fromYear, int toYear, List<MusicFolder> musicFolders) {
         List<Album> result = new ArrayList<>();
-        for (MediaFile file : mediaFileService.getAlbumsByYear(offset, count, fromYear, toYear, musicFolders)) {
+        for (org.airsonic.player.domain.Album file : mediaFileService.getAlbumsByYear(offset, count, fromYear, toYear, musicFolders)) {
             Album album = createAlbum(file);
             album.setYear(file.getYear());
             result.add(album);
@@ -227,18 +227,18 @@ public class HomeController  {
 
     private List<Album> getByGenre(int offset, int count, String genre, List<MusicFolder> musicFolders) {
         List<Album> result = new ArrayList<>();
-        for (MediaFile file : mediaFileService.getAlbumsByGenre(offset, count, genre, musicFolders)) {
+        for (org.airsonic.player.domain.Album file : mediaFileService.getAlbumsByGenre(offset, count, genre, musicFolders)) {
             result.add(createAlbum(file));
         }
         return result;
     }
 
-    private Album createAlbum(MediaFile file) {
+    private Album createAlbum(org.airsonic.player.domain.Album file) {
         Album album = new Album();
         album.setId(file.getId());
         album.setPath(file.getPath());
         album.setArtist(file.getArtist());
-        album.setAlbumTitle(file.getAlbumName());
+        album.setAlbumTitle(file.getName());
         album.setCoverArtPath(file.getCoverArtPath());
         return album;
     }

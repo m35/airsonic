@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.airsonic.player.domain.Album;
 
 /**
  * Provides database services for ratings.
@@ -45,7 +46,7 @@ public class RatingDao extends AbstractDao {
      * @param musicFolders Only return albums in these folders.
      * @return Paths for the highest rated albums.
      */
-    public List<String> getHighestRatedAlbums(final int offset, final int count, final List<MusicFolder> musicFolders) {
+    public List<Album> getHighestRatedAlbums(final int offset, final int count, final List<MusicFolder> musicFolders) {
         if (count < 1 || musicFolders.isEmpty()) {
             return Collections.emptyList();
         }

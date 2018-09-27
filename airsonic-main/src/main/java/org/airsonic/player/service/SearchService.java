@@ -299,8 +299,8 @@ public class SearchService {
      * @param musicFolders Only return albums from these folders.
      * @return List of random albums.
      */
-    public List<MediaFile> getRandomAlbums(int count, List<MusicFolder> musicFolders) {
-        List<MediaFile> result = new ArrayList<MediaFile>();
+    public List<Album> getRandomAlbums(int count, List<MusicFolder> musicFolders) {
+        List<Album> result = new ArrayList<Album>();
 
         IndexReader reader = null;
         try {
