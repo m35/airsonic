@@ -72,7 +72,7 @@ public class MediaFileDao extends AbstractDao {
     public MediaFile getAlbumForFile(MediaFile file) {
 
         // First, get all albums with the correct album name (irrespective of artist).
-        List<MediaFile> candidates = query("select " + QUERY_COLUMNS + " from album where name=?", rowMapper, file.getAlbumName());
+        List<MediaFile> candidates = query("select " + QUERY_COLUMNS + " from media_file where album=? and type=?", rowMapper, file.getAlbumName(), MediaFile.MediaType.ALBUM.name());
         if (candidates.isEmpty()) {
             return null;
         }

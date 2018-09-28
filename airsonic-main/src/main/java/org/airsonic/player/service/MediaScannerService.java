@@ -313,6 +313,7 @@ public class MediaScannerService {
             album.setDurationSeconds(0);
             Integer n = albumCount.get(artist);
             albumCount.put(artist, n == null ? 1 : n + 1);
+            album.setMediaType(MediaFile.MediaType.ALBUM);
         }
         if (file.getDurationSeconds() != null) {
             album.setDurationSeconds(album.getDurationSeconds() + file.getDurationSeconds());
