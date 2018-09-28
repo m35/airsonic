@@ -316,9 +316,6 @@ public class MediaScannerService {
         album.setLastScanned(lastScanned);
         album.setPresent(true);
         mediaFileDao.createOrUpdateMediaFile(album);
-        if (firstEncounter) {
-            searchService.index(album);
-        }
 
         // Update the file's album artist, if necessary.
         if (!ObjectUtils.equals(album.getArtist(), file.getAlbumArtist())) {
