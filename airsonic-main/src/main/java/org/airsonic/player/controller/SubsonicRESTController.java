@@ -758,7 +758,7 @@ public class SubsonicRESTController {
 
         criteria.setCount(getIntParameter(request, "albumCount", 20));
         criteria.setOffset(getIntParameter(request, "albumOffset", 0));
-        result = searchService.search(criteria, musicFolders, SearchService.IndexType.ALBUM_ID3);
+        result = searchService.search(criteria, musicFolders, SearchService.IndexType.ALBUM);
         for (MediaFile album : result.getAlbums()) {
             searchResult.getAlbum().add(createJaxbAlbum(new AlbumID3(), album, username));
         }
@@ -1143,7 +1143,7 @@ public class SubsonicRESTController {
         } else if ("starred".equals(type)) {
             albums = mediaFileDao.getStarredAlbums(offset, size, securityService.getCurrentUser(request).getUsername(), musicFolders);
         } else if ("random".equals(type)) {
-            albums = searchService.getRandomAlbumsId3(size, musicFolders);
+            albums = searchService.getRandomAlbums(size, musicFolders);
         } else {
             throw new Exception("Invalid list type: " + type);
         }

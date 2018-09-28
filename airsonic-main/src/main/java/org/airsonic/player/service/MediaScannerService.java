@@ -285,7 +285,7 @@ public class MediaScannerService {
             return;
         }
 
-        MediaFile album = mediaFileDao.getAlbumForFile(file);
+        MediaFile album = mediaFileService.getParentOf(file);
         if (album == null) {
             album = new MediaFile();
             album.setPath(file.getParentPath());
@@ -302,10 +302,6 @@ public class MediaScannerService {
         if (file.getGenre() != null) {
             album.setGenre(file.getGenre());
         }
-        MediaFile parent = mediaFileService.getParentOf(file);
-        if (parent != null && parent.getCoverArtPath() != null) {
-            album.setCoverArtPath(parent.getCoverArtPath());
-        }
 
         boolean firstEncounter = !lastScanned.equals(album.getLastScanned());
         if (firstEncounter) {
@@ -313,7 +309,6 @@ public class MediaScannerService {
             album.setDurationSeconds(0);
             Integer n = albumCount.get(artist);
             albumCount.put(artist, n == null ? 1 : n + 1);
-            album.setMediaType(MediaFile.MediaType.ALBUM);
         }
         if (file.getDurationSeconds() != null) {
             album.setDurationSeconds(album.getDurationSeconds() + file.getDurationSeconds());

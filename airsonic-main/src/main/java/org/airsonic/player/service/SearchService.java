@@ -90,7 +90,6 @@ public class SearchService {
     private IndexWriter artistWriter;
     private IndexWriter artistId3Writer;
     private IndexWriter albumWriter;
-    private IndexWriter albumId3Writer;
     private IndexWriter songWriter;
 
     public SearchService() {
@@ -102,7 +101,6 @@ public class SearchService {
             artistWriter = createIndexWriter(ARTIST);
             artistId3Writer = createIndexWriter(ARTIST_ID3);
             albumWriter = createIndexWriter(ALBUM);
-            albumId3Writer = createIndexWriter(ALBUM_ID3);
             songWriter = createIndexWriter(SONG);
         } catch (Exception x) {
             LOG.error("Failed to create search index.", x);
@@ -131,20 +129,11 @@ public class SearchService {
         }
     }
 
-    public void indexAlbum(MediaFile album) {
-        try {
-            albumId3Writer.addDocument(ALBUM_ID3.createDocument(album));
-        } catch (Exception x) {
-            LOG.error("Failed to create search index for " + album, x);
-        }
-    }
-
     public void stopIndexing() {
         try {
             artistWriter.optimize();
             artistId3Writer.optimize();
             albumWriter.optimize();
-            albumId3Writer.optimize();
             songWriter.optimize();
         } catch (Exception x) {
             LOG.error("Failed to create search index.", x);
@@ -152,7 +141,6 @@ public class SearchService {
             FileUtil.closeQuietly(artistId3Writer);
             FileUtil.closeQuietly(artistWriter);
             FileUtil.closeQuietly(albumWriter);
-            FileUtil.closeQuietly(albumId3Writer);
             FileUtil.closeQuietly(songWriter);
         }
     }
@@ -178,7 +166,7 @@ public class SearchService {
 
             List<SpanTermQuery> musicFolderQueries = new ArrayList<SpanTermQuery>();
             for (MusicFolder musicFolder : musicFolders) {
-                if (indexType == ALBUM_ID3 || indexType == ARTIST_ID3) {
+                if (indexType == ARTIST_ID3) {
                     musicFolderQueries.add(new SpanTermQuery(new Term(FIELD_FOLDER_ID, NumericUtils.intToPrefixCoded(musicFolder.getId()))));
                 } else {
                     musicFolderQueries.add(new SpanTermQuery(new Term(FIELD_FOLDER, musicFolder.getPath().getPath())));
@@ -203,10 +191,6 @@ public class SearchService {
                     case ARTIST_ID3:
                         Artist artist = artistDao.getArtist(Integer.valueOf(doc.get(FIELD_ID)));
                         addIfNotNull(artist, result.getArtists());
-                        break;
-                    case ALBUM_ID3:
-                        MediaFile album = mediaFileService.getMediaFile(Integer.valueOf(doc.get(FIELD_ID)));
-                        addIfNotNull(album, result.getAlbums());
                         break;
                     default:
                         break;
@@ -332,57 +316,11 @@ public class SearchService {
         }
         return result;
     }
-
-    /**
-     * Returns a number of random albums, using ID3 tag.
-     *
-     * @param count        Number of albums to return.
-     * @param musicFolders Only return albums from these folders.
-     * @return List of random albums.
-     */
-    public List<MediaFile> getRandomAlbumsId3(int count, List<MusicFolder> musicFolders) {
-        List<MediaFile> result = new ArrayList<MediaFile>();
-
-        IndexReader reader = null;
-        try {
-            reader = createIndexReader(ALBUM_ID3);
-            Searcher searcher = new IndexSearcher(reader);
-
-            List<SpanTermQuery> musicFolderQueries = new ArrayList<SpanTermQuery>();
-            for (MusicFolder musicFolder : musicFolders) {
-                musicFolderQueries.add(new SpanTermQuery(new Term(FIELD_FOLDER_ID, NumericUtils.intToPrefixCoded(musicFolder.getId()))));
-            }
-            Query query = new SpanOrQuery(musicFolderQueries.toArray(new SpanQuery[musicFolderQueries.size()]));
-            TopDocs topDocs = searcher.search(query, null, Integer.MAX_VALUE);
-            List<ScoreDoc> scoreDocs = Lists.newArrayList(topDocs.scoreDocs);
-            Random random = new Random(System.currentTimeMillis());
-
-            while (!scoreDocs.isEmpty() && result.size() < count) {
-                int index = random.nextInt(scoreDocs.size());
-                Document doc = searcher.doc(scoreDocs.remove(index).doc);
-                int id = Integer.valueOf(doc.get(FIELD_ID));
-                try {
-                    addIfNotNull(mediaFileService.getAlbum(id), result);
-                } catch (Exception x) {
-                    LOG.warn("Failed to get album file " + id, x);
-                }
-            }
-
-        } catch (Throwable x) {
-            LOG.error("Failed to search for random albums.", x);
-        } finally {
-            FileUtil.closeQuietly(reader);
-        }
-        return result;
-    }
-
+    
     public <T> ParamSearchResult<T> searchByName(String name, int offset, int count, List<MusicFolder> folderList, String type) {
         IndexType indexType = null;
         String field = null;
-        if ("Album".equals(type)) {
-            indexType = IndexType.ALBUM_ID3;
-            field = FIELD_ALBUM;
-        } else if ("Artist".equals(type)) {
+        if ("Artist".equals(type)) {
             indexType = IndexType.ARTIST_ID3;
             field = FIELD_ARTIST;
         } else if ("MediaFile".equals(type)) {
@@ -416,7 +354,6 @@ public class SearchService {
             for (int i = start; i < end; i++) {
                 Document doc = searcher.doc(topDocs.scoreDocs[i].doc);
                 switch (indexType) {
-                case ALBUM_ID3:
                 case SONG:
                     MediaFile mediaFile = mediaFileService.getMediaFile(Integer.valueOf(doc.get(FIELD_ID)));
                     if (mediaFile != null) {
@@ -533,26 +470,6 @@ public class SearchService {
                 }
                 if (mediaFile.getFolder() != null) {
                     doc.add(new Field(FIELD_FOLDER, mediaFile.getFolder(), Field.Store.NO, Field.Index.NOT_ANALYZED_NO_NORMS));
-                }
-
-                return doc;
-            }
-        },
-
-        ALBUM_ID3(new String[]{FIELD_ALBUM, FIELD_ARTIST, FIELD_FOLDER_ID}, FIELD_ALBUM) {
-            @Override
-            public Document createDocument(MediaFile album) {
-                Document doc = new Document();
-                doc.add(new NumericField(FIELD_ID, Field.Store.YES, false).setIntValue(album.getId()));
-
-                if (album.getArtist() != null) {
-                    doc.add(new Field(FIELD_ARTIST, album.getArtist(), Field.Store.YES, Field.Index.ANALYZED));
-                }
-                if (album.getName() != null) {
-                    doc.add(new Field(FIELD_ALBUM, album.getName(), Field.Store.YES, Field.Index.ANALYZED));
-                }
-                if (album.getFolder() != null) {
-                    doc.add(new Field(FIELD_FOLDER, album.getFolder(), Field.Store.NO, Field.Index.NOT_ANALYZED_NO_NORMS));
                 }
 
                 return doc;
