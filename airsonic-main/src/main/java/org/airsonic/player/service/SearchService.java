@@ -72,7 +72,7 @@ public class SearchService {
     private static final String FIELD_ID = "id";
     private static final String FIELD_TITLE = "title";
     private static final String FIELD_ALBUM = "album";
-    private static final String FIELD_ARTIST = "artist";
+    private static final String FIELD_ARTIST = "album_artist";
     private static final String FIELD_GENRE = "genre";
     private static final String FIELD_YEAR = "year";
     private static final String FIELD_MEDIA_TYPE = "mediaType";

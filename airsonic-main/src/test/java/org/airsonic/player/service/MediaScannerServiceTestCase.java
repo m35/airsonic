@@ -202,7 +202,7 @@ public class MediaScannerServiceTestCase {
         MediaFile album = allAlbums.get(0);
         Assert.assertEquals("TestAlbum", album.getName());
         Assert.assertEquals("TestArtist", album.getArtist());
-        Assert.assertEquals(1, mediaFileDao.getSongCount(album));
+        Assert.assertEquals(Integer.valueOf(1), album.getTrackNumber());
         Assert.assertEquals("0820752d-1043-4572-ab36-2df3b5cc15fa", album.getMusicBrainzReleaseId());
         Assert.assertEquals(musicFolderFile.toPath().resolve("TestAlbum").toString(), album.getPath());
 

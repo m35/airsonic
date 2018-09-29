@@ -127,9 +127,15 @@ public class MediaFileDao extends AbstractDao {
     }
 
     public List<MediaFile> getSongsForAlbum(String artist, String album) {
-        return query("select " + QUERY_COLUMNS + " from media_file where COALESCE(album_artist,-1)=COALESCE(?, -1) and album=? and present " +
-                     "and type in (?,?,?) order by disc_number, track_number", rowMapper,
-                     artist, album, MediaFile.MediaType.MUSIC.name(), MediaFile.MediaType.AUDIOBOOK.name(), MediaFile.MediaType.PODCAST.name());
+        return query("select " + QUERY_COLUMNS + " from media_file "
+                   + "where ((album_artist IS NULL and ? IS NULL) or album_artist = ?) "
+                   + "and album=? "
+                   + "and present "
+                   + "and type in (?,?,?) "
+                   + "order by disc_number, track_number", rowMapper,
+                     artist, artist, 
+                     album, 
+                     MediaFile.MediaType.MUSIC.name(), MediaFile.MediaType.AUDIOBOOK.name(), MediaFile.MediaType.PODCAST.name());
     }
 
     public MediaFile getAlbum(int id) {
@@ -142,8 +148,11 @@ public class MediaFileDao extends AbstractDao {
             put("album", album);
             put("type", MediaFile.MediaType.ALBUM.name());
         }};
-        return namedQueryOne("select " + QUERY_COLUMNS + " from media_file where type = :type and COALESCE(album_artist,-1) = COALESCE(:album_artist,-1) " +
-                             "and album = :album and present", rowMapper, args);
+        return namedQueryOne("select " + QUERY_COLUMNS + " from media_file "
+                           + "where type = :type "
+                           + "and ((album_artist IS NULL and :album_artist IS NULL) or album_artist = :album_artist) "
+                           + "and album = :album "
+                           + "and present", rowMapper, args);
         
     }
 
@@ -769,15 +778,6 @@ public class MediaFileDao extends AbstractDao {
         for (int id = minId; id <= maxId; id += batchSize) {
             update("delete from media_file where id between ? and ? and not present", id, id + batchSize);
         }
-    }
-
-    public int getSongCount(MediaFile album) {
-        return queryForInt("select count(1) from media_file where album=? and album_artist=? and type in (?, ?, ?)", 0, 
-                album.getAlbumName(), 
-                album.getAlbumArtist(), 
-                MediaFile.MediaType.AUDIOBOOK.name(),
-                MediaFile.MediaType.MUSIC.name(),
-                MediaFile.MediaType.PODCAST.name());
     }
 
     private static class MediaFileMapper implements RowMapper<MediaFile> {

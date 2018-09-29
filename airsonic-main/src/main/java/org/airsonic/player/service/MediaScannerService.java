@@ -66,8 +66,6 @@ public class MediaScannerService {
     private MediaFileDao mediaFileDao;
     @Autowired
     private ArtistDao artistDao;
-    @Autowired
-    private JaudiotaggerParser parser;
     
     private int scanCount;
 
@@ -305,11 +303,11 @@ public class MediaScannerService {
             album.setMusicBrainzReleaseId(file.getMusicBrainzReleaseId());
             album.setYear(file.getYear());
             album.setFolder(musicFolder.getPath().getPath());
-            
-            // TODO: use track number to hold song count
+            album.setDiscNumber(file.getDiscNumber());
             
             album.setDurationSeconds(0);
             album.setPlayCount(0);
+            album.setTrackNumber(0);
 
             if (file.getParentFile() != null) {
                 // use an image in the directory first
@@ -328,8 +326,6 @@ public class MediaScannerService {
             album.setChildrenLastUpdated(file.getChanged());
         }
         
-        album.setChanged(new Date());
-        
         String artist = album.getAlbumArtist();
         if (artist == null) {
             artist = "";
@@ -342,13 +338,17 @@ public class MediaScannerService {
             album.setCoverArtPath(file.getCoverArtPath());
         }
 
-        album.setLastScanned(new Date());
-        
         if (file.getDurationSeconds() != null) {
             album.setDurationSeconds(album.getDurationSeconds() + file.getDurationSeconds());
         }
+        album.setTrackNumber(album.getTrackNumber() + 1);
+        
         album.setLastScanned(lastScanned);
+        album.setChanged(lastScanned);
+        album.setChildrenLastUpdated(lastScanned);
+        album.setCreated(lastScanned);
         album.setPresent(true);
+        
         mediaFileDao.createOrUpdateMediaFile(album);
 
     }
@@ -461,10 +461,6 @@ public class MediaScannerService {
 
     public void setPlaylistService(PlaylistService playlistService) {
         this.playlistService = playlistService;
-    }
-    
-    public void setParser(JaudiotaggerParser parser) {
-        this.parser = parser;
     }
     
 }

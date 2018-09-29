@@ -536,7 +536,7 @@ public class SubsonicRESTController {
         if (album.getCoverArtPath() != null) {
             jaxbAlbum.setCoverArt(CoverArtController.ALBUM_COVERART_PREFIX + album.getId());
         }
-        jaxbAlbum.setSongCount(mediaFileDao.getSongCount(album));
+        jaxbAlbum.setSongCount(album.getTrackNumber());
         jaxbAlbum.setDuration(album.getDurationSeconds());
         jaxbAlbum.setCreated(jaxbWriter.convertDate(album.getCreated()));
         jaxbAlbum.setStarred(jaxbWriter.convertDate(mediaFileDao.getAlbumStarredDate(album.getId(), username)));

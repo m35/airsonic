@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.nio.file.Files;
 import java.util.*;
+import org.airsonic.player.service.metadata.JaudiotaggerParser;
 
 /**
  * Provides services for instantiating and caching media files and cover art.
@@ -58,6 +59,8 @@ public class MediaFileService {
     private MediaFileDao mediaFileDao;
     @Autowired
     private MetaDataParserFactory metaDataParserFactory;
+    @Autowired
+    private JaudiotaggerParser jaudiotaggerParser;
     private boolean memoryCacheEnabled = true;
 
     /**
@@ -399,22 +402,31 @@ public class MediaFileService {
         }
 
         List<MediaFile> storedChildren = mediaFileDao.getChildrenOf(parent);
-        Map<String, MediaFile> storedChildrenMap = new HashMap<String, MediaFile>();
-        for (MediaFile child : storedChildren) {
-            storedChildrenMap.put(child.getPath(), child);
-        }
 
-        List<File> children = filterMediaFiles(FileUtil.listFiles(parent.getFile()));
-        for (File child : children) {
-            if (storedChildrenMap.remove(child.getPath()) == null) {
-                // Add children that are not already stored.
-                mediaFileDao.createOrUpdateMediaFile(createMediaFile(child));
+        if (parent.isDirectory()) {
+            Map<String, MediaFile> storedChildrenMap = new HashMap<String, MediaFile>();
+            for (MediaFile child : storedChildren) {
+                storedChildrenMap.put(child.getPath(), child);
             }
-        }
+            
+            List<File> children = filterMediaFiles(FileUtil.listFiles(parent.getFile()));
+            for (File child : children) {
+                if (storedChildrenMap.remove(child.getPath()) == null) {
+                    // Add children that are not already stored.
+                    mediaFileDao.createOrUpdateMediaFile(createMediaFile(child));
+                }
+            }
 
-        // Delete children that no longer exist on disk.
-        for (String path : storedChildrenMap.keySet()) {
-            mediaFileDao.deleteMediaFile(path);
+            // Delete children that no longer exist on disk.
+            for (String path : storedChildrenMap.keySet()) {
+                mediaFileDao.deleteMediaFile(path);
+            }
+        } else if (parent.isAlbum()) {
+            for (MediaFile mediaFile : storedChildren) {
+                if (!FileUtil.exists(mediaFile.getPath())) {
+                    mediaFileDao.deleteMediaFile(mediaFile.getPath());
+                }
+            }
         }
 
         // Update timestamp in parent.
@@ -497,6 +509,7 @@ public class MediaFileService {
             MetaDataParser parser = metaDataParserFactory.getParser(file);
             if (parser != null) {
                 MetaData metaData = parser.getMetaData(file);
+                
                 mediaFile.setArtist(metaData.getArtist());
                 mediaFile.setAlbumArtist(metaData.getAlbumArtist());
                 mediaFile.setAlbumName(metaData.getAlbumName());
@@ -511,6 +524,12 @@ public class MediaFileService {
                 mediaFile.setHeight(metaData.getHeight());
                 mediaFile.setWidth(metaData.getWidth());
                 mediaFile.setMusicBrainzReleaseId(metaData.getMusicBrainzReleaseId());
+                
+                if (jaudiotaggerParser.isApplicable(file)) {
+                    if (jaudiotaggerParser.isImageAvailable(mediaFile)) {
+                        mediaFile.setCoverArtPath(mediaFile.getPath());
+                    }
+                }
             }
             String format = StringUtils.trimToNull(StringUtils.lowerCase(FilenameUtils.getExtension(mediaFile.getPath())));
             mediaFile.setFormat(format);
