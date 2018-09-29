@@ -33,7 +33,11 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
+import org.airsonic.player.service.metadata.JaudiotaggerParser;
+import org.airsonic.player.service.metadata.MetaData;
+import org.airsonic.player.service.metadata.MetaDataParser;
 
 /**
  * Provides services for scanning the music library.
@@ -62,6 +66,9 @@ public class MediaScannerService {
     private MediaFileDao mediaFileDao;
     @Autowired
     private ArtistDao artistDao;
+    @Autowired
+    private JaudiotaggerParser parser;
+    
     private int scanCount;
 
     @PostConstruct
@@ -191,7 +198,7 @@ public class MediaScannerService {
                 scanFile(mediaFileService.getMediaFile(podcastFolder), new MusicFolder(podcastFolder, null, true, null),
                          lastScanned, albumCount, genres, true);
             }
-
+            
             LOG.info("Scanned media library with " + scanCount + " entries.");
 
             LOG.info("Marking non-present files.");
@@ -280,36 +287,60 @@ public class MediaScannerService {
     }
 
     private void updateAlbum(MediaFile file, MusicFolder musicFolder, Date lastScanned, Map<String, Integer> albumCount) {
-        String artist = file.getAlbumArtist() != null ? file.getAlbumArtist() : file.getArtist();
-        if (file.getAlbumName() == null || artist == null || file.getParentPath() == null || !file.isAudio()) {
+        if (file.getAlbumName() == null || !file.isAudio()) {
             return;
         }
-
-        MediaFile album = mediaFileService.getParentOf(file);
+        
+        MediaFile album = mediaFileDao.getAlbum(file.getAlbumArtist(), file.getAlbumName());
         if (album == null) {
             album = new MediaFile();
-            album.setPath(file.getParentPath());
-            album.setTitle(file.getAlbumName());
-            album.setArtist(artist);
+            album.setMediaType(MediaFile.MediaType.ALBUM);
+            
+            album.setAlbumName(file.getAlbumName());
+            album.setAlbumArtist(file.getAlbumArtist());
+            LOG.info("Creating album " + album.getAlbumName());
+            album.setPath(album.getArtist() + "///" + album.getAlbumName());
             album.setCreated(file.getChanged());
-        }
-        if (file.getMusicBrainzReleaseId() != null) {
             album.setMusicBrainzReleaseId(file.getMusicBrainzReleaseId());
-        }
-        if (file.getYear() != null) {
             album.setYear(file.getYear());
+            album.setFolder(musicFolder.getPath().getPath());
+            
+            album.setDurationSeconds(0);
+            album.setPlayCount(0);
+
+            if (file.getParentFile() != null) {
+                // use an image in the directory first
+                File[] children = FileUtil.listFiles(file.getParentFile());
+                File coverArt = findCoverArt(children);
+                if (coverArt != null) {
+                    album.setCoverArtPath(coverArt.getPath());
+                }
+            }
+            
+            searchService.index(album);
         }
-        if (file.getGenre() != null) {
-            album.setGenre(file.getGenre());
+        LOG.info("Adding " + file.getTitle() + " to " + album.getAlbumName());
+        
+        if (album.getChildrenLastUpdated() == null || album.getChildrenLastUpdated().getTime() < file.getChanged().getTime()) {
+            album.setChildrenLastUpdated(file.getChanged());
+        }
+        
+        album.setChanged(new Date());
+        
+        String artist = album.getAlbumArtist();
+        if (artist == null) {
+            artist = "";
+        }
+        Integer n = albumCount.get(artist);
+        albumCount.put(artist, n == null ? 1 : n + 1);
+
+        // or use the first song with image art
+        if (album.getCoverArtPath() == null && file.getCoverArtPath() != null) {
+            album.setCoverArtPath(file.getCoverArtPath());
         }
 
-        boolean firstEncounter = !lastScanned.equals(album.getLastScanned());
-        if (firstEncounter) {
-            album.setFolder(musicFolder.getPath().getPath());
-            album.setDurationSeconds(0);
-            Integer n = albumCount.get(artist);
-            albumCount.put(artist, n == null ? 1 : n + 1);
-        }
+        album.setLastScanned(new Date());
+        
         if (file.getDurationSeconds() != null) {
             album.setDurationSeconds(album.getDurationSeconds() + file.getDurationSeconds());
         }
@@ -317,13 +348,23 @@ public class MediaScannerService {
         album.setPresent(true);
         mediaFileDao.createOrUpdateMediaFile(album);
 
-        // Update the file's album artist, if necessary.
-        if (!ObjectUtils.equals(album.getArtist(), file.getAlbumArtist())) {
-            file.setAlbumArtist(album.getArtist());
-            mediaFileDao.createOrUpdateMediaFile(file);
-        }
     }
 
+    /**
+     * Finds a cover art image for the given directory, by looking for it on the disk.
+     */
+    private File findCoverArt(File[] candidates) {
+        for (String mask : settingsService.getCoverArtFileTypesAsArray()) {
+            for (File candidate : candidates) {
+                if (candidate.isFile() && candidate.getName().toUpperCase().endsWith(mask.toUpperCase()) && !candidate.getName().startsWith(".")) {
+                    return candidate;
+                }
+            }
+        }
+
+        return null;
+    }
+    
     private void updateArtist(MediaFile file, MusicFolder musicFolder, Date lastScanned, Map<String, Integer> albumCount) {
         if (file.getAlbumArtist() == null || !file.isAudio()) {
             return;
@@ -418,4 +459,9 @@ public class MediaScannerService {
     public void setPlaylistService(PlaylistService playlistService) {
         this.playlistService = playlistService;
     }
+    
+    public void setParser(JaudiotaggerParser parser) {
+        this.parser = parser;
+    }
+    
 }

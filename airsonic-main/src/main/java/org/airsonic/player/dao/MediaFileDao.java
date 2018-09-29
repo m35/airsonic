@@ -132,9 +132,9 @@ public class MediaFileDao extends AbstractDao {
         return getMediaFile(id);
     }
 
-    public MediaFile getAlbum(String artist, String album) {
+    public MediaFile getAlbum(String albumArtist, String album) {
         Map<String, Object> args = new HashMap<String, Object>() {{
-            put("artist", artist);
+            put("artist", albumArtist);
             put("album", album);
             put("type", MediaFile.MediaType.ALBUM.name());
         }};
@@ -755,8 +755,9 @@ public class MediaFileDao extends AbstractDao {
     }
 
     public int getSongCount(MediaFile album) {
-        return queryForInt("select count(1) from media_file where album=? and type in (?, ?, ?)", 0, 
+        return queryForInt("select count(1) from media_file where album=? and album_artist=? and type in (?, ?, ?)", 0, 
                 album.getAlbumName(), 
+                album.getAlbumArtist(), 
                 MediaFile.MediaType.AUDIOBOOK.name(),
                 MediaFile.MediaType.MUSIC.name(),
                 MediaFile.MediaType.PODCAST.name());

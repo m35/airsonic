@@ -59,8 +59,6 @@ public class MediaFileService {
     @Autowired
     private MediaFileDao mediaFileDao;
     @Autowired
-    private JaudiotaggerParser parser;
-    @Autowired
     private MetaDataParserFactory metaDataParserFactory;
     private boolean memoryCacheEnabled = true;
 
@@ -142,7 +140,7 @@ public class MediaFileService {
             return null;
         }
 
-        if (!securityService.isReadAllowed(mediaFile.getFile())) {
+        if (!securityService.isReadAllowed(mediaFile.getFile())) {!
             throw new SecurityException("Access denied to file " + mediaFile);
         }
 
@@ -510,47 +508,6 @@ public class MediaFileService {
             mediaFile.setFormat(format);
             mediaFile.setFileSize(FileUtil.length(file));
             mediaFile.setMediaType(getMediaType(mediaFile));
-
-        } else {
-
-            // Is this an album?
-            if (!isRoot(mediaFile)) {
-                File[] children = FileUtil.listFiles(file);
-                File firstChild = null;
-                for (File child : filterMediaFiles(children)) {
-                    if (FileUtil.isFile(child)) {
-                        firstChild = child;
-                        break;
-                    }
-                }
-
-                if (firstChild != null) {
-                    mediaFile.setMediaType(MediaFile.MediaType.ALBUM);
-
-                    // Guess artist/album name, year and genre.
-                    MetaDataParser parser = metaDataParserFactory.getParser(firstChild);
-                    if (parser != null) {
-                        MetaData metaData = parser.getMetaData(firstChild);
-                        mediaFile.setArtist(metaData.getAlbumArtist());
-                        mediaFile.setAlbumName(metaData.getAlbumName());
-                        mediaFile.setYear(metaData.getYear());
-                        mediaFile.setGenre(metaData.getGenre());
-                    }
-
-                    // Look for cover art.
-                    try {
-                        File coverArt = findCoverArt(children);
-                        if (coverArt != null) {
-                            mediaFile.setCoverArtPath(coverArt.getPath());
-                        }
-                    } catch (IOException x) {
-                        LOG.error("Failed to find cover art.", x);
-                    }
-
-                } else {
-                    mediaFile.setArtist(file.getName());
-                }
-            }
         }
 
         return mediaFile;
@@ -609,30 +566,6 @@ public class MediaFileService {
         return parent == null ? null : parent.getCoverArtFile();
     }
 
-    /**
-     * Finds a cover art image for the given directory, by looking for it on the disk.
-     */
-    private File findCoverArt(File[] candidates) throws IOException {
-        for (String mask : settingsService.getCoverArtFileTypesAsArray()) {
-            for (File candidate : candidates) {
-                if (candidate.isFile() && candidate.getName().toUpperCase().endsWith(mask.toUpperCase()) && !candidate.getName().startsWith(".")) {
-                    return candidate;
-                }
-            }
-        }
-
-        // Look for embedded images in audiofiles. (Only check first audio file encountered).
-        for (File candidate : candidates) {
-            if (parser.isApplicable(candidate)) {
-                if (parser.isImageAvailable(getMediaFile(candidate))) {
-                    return candidate;
-                } else {
-                    return null;
-                }
-            }
-        }
-        return null;
-    }
 
     public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
@@ -717,7 +650,4 @@ public class MediaFileService {
         mediaFileMemoryCache.removeAll();
     }
 
-    public void setParser(JaudiotaggerParser parser) {
-        this.parser = parser;
-    }
 }
