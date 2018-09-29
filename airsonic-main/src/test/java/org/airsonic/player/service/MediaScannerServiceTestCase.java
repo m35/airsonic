@@ -121,10 +121,10 @@ public class MediaScannerServiceTestCase {
 
 
         // Music Folder Music must have 3 children
-        List<MediaFile> listeMusicChildren = mediaFileDao.getChildrenOf(new File(MusicFolderTestData.resolveMusicFolderPath()).getPath());
+        List<MediaFile> listeMusicChildren = mediaFileDao.getChildrenOf(mediaFileDao.getMediaFile(new File(MusicFolderTestData.resolveMusicFolderPath()).getPath()));
         Assert.assertEquals(3, listeMusicChildren.size());
         // Music Folder Music2 must have 1 children
-        List<MediaFile> listeMusic2Children = mediaFileDao.getChildrenOf(new File(MusicFolderTestData.resolveMusic2FolderPath()).getPath());
+        List<MediaFile> listeMusic2Children = mediaFileDao.getChildrenOf(mediaFileDao.getMediaFile(new File(MusicFolderTestData.resolveMusic2FolderPath()).getPath()));
         Assert.assertEquals(1, listeMusic2Children.size());
 
         System.out.println("--- List of all artists ---");
@@ -207,7 +207,7 @@ public class MediaScannerServiceTestCase {
         Assert.assertEquals(musicFolderFile.toPath().resolve("TestAlbum").toString(), album.getPath());
 
         // Test that the music file is correctly imported, along with its MusicBrainz release ID
-        List<MediaFile> albumFiles = mediaFileDao.getChildrenOf(allAlbums.get(0).getPath());
+        List<MediaFile> albumFiles = mediaFileDao.getChildrenOf(allAlbums.get(0));
         Assert.assertEquals(1, albumFiles.size());
         MediaFile file = albumFiles.get(0);
         Assert.assertEquals("Aria", file.getTitle());

@@ -23,7 +23,6 @@ import net.sf.ehcache.Ehcache;
 import net.sf.ehcache.Element;
 import org.airsonic.player.dao.MediaFileDao;
 import org.airsonic.player.domain.*;
-import org.airsonic.player.service.metadata.JaudiotaggerParser;
 import org.airsonic.player.service.metadata.MetaData;
 import org.airsonic.player.service.metadata.MetaDataParser;
 import org.airsonic.player.service.metadata.MetaDataParserFactory;
@@ -36,7 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
 
@@ -89,7 +87,9 @@ public class MediaFileService {
         }
 
         if (!securityService.isReadAllowed(file)) {
-            throw new SecurityException("Access denied to file " + file);
+            //throw new SecurityException("Access denied to file " + file);
+            System.out.println(file);
+            return null;
         }
 
         // Secondly, look in database.
@@ -140,8 +140,12 @@ public class MediaFileService {
             return null;
         }
 
-        if (!securityService.isReadAllowed(mediaFile.getFile())) {!
-            throw new SecurityException("Access denied to file " + mediaFile);
+        if (!securityService.isReadAllowed(mediaFile.getFile())) {
+            //throw new SecurityException("Access denied to file " + mediaFile);
+            System.out.println(mediaFile);
+            if (mediaFile.getMediaType() != MediaFile.MediaType.ALBUM) {
+                return null;
+            }
         }
 
         return checkLastModified(mediaFile, settingsService.isFastCacheEnabled());
@@ -151,7 +155,7 @@ public class MediaFileService {
         if (mediaFile.getParentPath() == null) {
             return null;
         }
-        return getMediaFile(mediaFile.getParentPath());
+        return getMediaFile(mediaFile.getParentPath()); // check for album then dir?
     }
 
     /**
@@ -176,7 +180,7 @@ public class MediaFileService {
      */
     public List<MediaFile> getChildrenOf(MediaFile parent, boolean includeFiles, boolean includeDirectories, boolean sort, boolean useFastCache) {
 
-        if (!parent.isDirectory()) {
+        if (!parent.isDirectory() && !parent.isAlbum()) {
             return Collections.emptyList();
         }
 
@@ -186,7 +190,7 @@ public class MediaFileService {
         }
 
         List<MediaFile> result = new ArrayList<MediaFile>();
-        for (MediaFile child : mediaFileDao.getChildrenOf(parent.getPath())) {
+        for (MediaFile child : mediaFileDao.getChildrenOf(parent)) {
             child = checkLastModified(child, useFastCache);
             if (child.isDirectory() && includeDirectories) {
                 result.add(child);
@@ -325,6 +329,10 @@ public class MediaFileService {
         return mediaFileDao.getAlbumsByGenre(offset, count, genre, musicFolders);
     }
 
+    public List<MediaFile> getAlbumsForAlbumArtist(String albumArtist, List<MusicFolder> musicFolders) {
+        return mediaFileDao.getAlbumsForAlbumArtist(albumArtist, musicFolders);
+    }
+    
     /**
      * Returns random songs for the given parent.
      *
@@ -390,7 +398,7 @@ public class MediaFileService {
             return;
         }
 
-        List<MediaFile> storedChildren = mediaFileDao.getChildrenOf(parent.getPath());
+        List<MediaFile> storedChildren = mediaFileDao.getChildrenOf(parent);
         Map<String, MediaFile> storedChildrenMap = new HashMap<String, MediaFile>();
         for (MediaFile child : storedChildren) {
             storedChildrenMap.put(child.getPath(), child);

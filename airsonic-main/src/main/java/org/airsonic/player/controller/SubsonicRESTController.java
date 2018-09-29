@@ -514,7 +514,7 @@ public class SubsonicRESTController {
 
         List<org.airsonic.player.domain.MusicFolder> musicFolders = settingsService.getMusicFoldersForUser(username);
         ArtistWithAlbumsID3 result = createJaxbArtist(new ArtistWithAlbumsID3(), artist, username);
-        for (MediaFile album : mediaFileDao.getAlbumsForArtist(artist.getName(), musicFolders)) {
+        for (MediaFile album : mediaFileDao.getAlbumsForAlbumArtist(artist.getName(), musicFolders)) {
             result.getAlbum().add(createJaxbAlbum(new AlbumID3(), album, username));
         }
 

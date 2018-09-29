@@ -111,8 +111,12 @@ public class MediaFileDao extends AbstractDao {
      * @param path The path.
      * @return The list of children.
      */
-    public List<MediaFile> getChildrenOf(String path) {
-        return query("select " + QUERY_COLUMNS + " from media_file where parent_path=? and present", rowMapper, path);
+    public List<MediaFile> getChildrenOf(MediaFile parent) {
+        if (parent.isAlbum()) {
+            return getSongsForAlbum(parent.getAlbumArtist(), parent.getAlbumName());
+        } else {
+            return query("select " + QUERY_COLUMNS + " from media_file where parent_path=? and present", rowMapper, parent.getPath());
+        }
     }
 
     public List<MediaFile> getFilesInPlaylist(int playlistId) {
@@ -123,7 +127,7 @@ public class MediaFileDao extends AbstractDao {
     }
 
     public List<MediaFile> getSongsForAlbum(String artist, String album) {
-        return query("select " + QUERY_COLUMNS + " from media_file where album_artist=? and album=? and present " +
+        return query("select " + QUERY_COLUMNS + " from media_file where COALESCE(album_artist,-1)=COALESCE(?, -1) and album=? and present " +
                      "and type in (?,?,?) order by disc_number, track_number", rowMapper,
                      artist, album, MediaFile.MediaType.MUSIC.name(), MediaFile.MediaType.AUDIOBOOK.name(), MediaFile.MediaType.PODCAST.name());
     }
@@ -134,29 +138,42 @@ public class MediaFileDao extends AbstractDao {
 
     public MediaFile getAlbum(String albumArtist, String album) {
         Map<String, Object> args = new HashMap<String, Object>() {{
-            put("artist", albumArtist);
+            put("album_artist", albumArtist);
             put("album", album);
             put("type", MediaFile.MediaType.ALBUM.name());
         }};
-        return namedQueryOne("select " + QUERY_COLUMNS + " from media_file where type = :type and album_artist = :artist " +
+        return namedQueryOne("select " + QUERY_COLUMNS + " from media_file where type = :type and COALESCE(album_artist,-1) = COALESCE(:album_artist,-1) " +
                              "and album = :album and present", rowMapper, args);
         
     }
 
-    public List<MediaFile> getAlbumsForArtist(final String artist, final List<MusicFolder> musicFolders) {
+    public List<MediaFile> getAlbumsForAlbumArtist(final String albumArtist, final List<MusicFolder> musicFolders) {
         if (musicFolders.isEmpty()) {
             return Collections.emptyList();
         }
         Map<String, Object> args = new HashMap<String, Object>() {{
-            put("artist", artist);
-            put("folders", MusicFolder.toIdList(musicFolders));
+            put("album_artist", albumArtist);
+            put("folders", MusicFolder.toPathList(musicFolders));
+            put("type", MediaFile.MediaType.ALBUM.name());
         }};
         return namedQuery("select " + QUERY_COLUMNS
-                          + " from media_file where artist = :artist and present and folder_id in (:folders) " +
-                          "order by name",
+                          + " from media_file where type = :type and album_artist = :album_artist and present and folder in (:folders) " +
+                          "order by album",
                           rowMapper, args);
     }    
     
+    /*
+    public List<MediaFile> getAlbumsForAlbumArtist(final String albumArtist) {
+        Map<String, Object> args = new HashMap<String, Object>() {{
+            put("album_artist", albumArtist);
+        }};
+        return namedQuery("select " + QUERY_COLUMNS
+                          + " from media_file where album_artist = :album_artist and present " +
+                          "order by album",
+                          rowMapper, args);
+    }  
+    */
+        
     public List<MediaFile> getVideos(final int count, final int offset, final List<MusicFolder> musicFolders) {
         if (musicFolders.isEmpty()) {
             return Collections.emptyList();

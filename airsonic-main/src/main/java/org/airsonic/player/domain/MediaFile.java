@@ -168,7 +168,7 @@ public class MediaFile {
     }
 
     public boolean isDirectory() {
-        return !isFile();
+        return mediaType == MediaType.DIRECTORY;
     }
 
     public boolean isFile() {

@@ -76,7 +76,7 @@ public class ArtistUpnpProcessor extends UpnpContentProcessor <Artist, MediaFile
 
     public  List<MediaFile> getChildren(Artist artist) {
         List<MusicFolder> allFolders = getDispatcher().getSettingsService().getAllMusicFolders();
-        List<MediaFile> allAlbums = getAlbumProcessor().getAlbumDao().getAlbumsForArtist(artist.getName(), allFolders);
+        List<MediaFile> allAlbums = getAlbumProcessor().getAlbumDao().getAlbumsForAlbumArtist(artist.getName(), allFolders);
         if (allAlbums.size() > 1) {
             // if the artist has more than one album, add in an option to
             // view the tracks in all the albums together

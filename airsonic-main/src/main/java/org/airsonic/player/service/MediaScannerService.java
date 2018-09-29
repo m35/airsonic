@@ -296,14 +296,17 @@ public class MediaScannerService {
             album = new MediaFile();
             album.setMediaType(MediaFile.MediaType.ALBUM);
             
+            album.setTitle(file.getAlbumName()); // for toString()
             album.setAlbumName(file.getAlbumName());
             album.setAlbumArtist(file.getAlbumArtist());
             LOG.info("Creating album " + album.getAlbumName());
-            album.setPath(album.getArtist() + "///" + album.getAlbumName());
+            album.setPath(album.getAlbumArtist() + "///" + album.getAlbumName());
             album.setCreated(file.getChanged());
             album.setMusicBrainzReleaseId(file.getMusicBrainzReleaseId());
             album.setYear(file.getYear());
             album.setFolder(musicFolder.getPath().getPath());
+            
+            // TODO: use track number to hold song count
             
             album.setDurationSeconds(0);
             album.setPlayCount(0);
@@ -319,7 +322,7 @@ public class MediaScannerService {
             
             searchService.index(album);
         }
-        LOG.info("Adding " + file.getTitle() + " to " + album.getAlbumName());
+        LOG.info("Adding " + file.getTitle() + " (" + file.getPath() + ") to " + album.getAlbumName());
         
         if (album.getChildrenLastUpdated() == null || album.getChildrenLastUpdated().getTime() < file.getChanged().getTime()) {
             album.setChildrenLastUpdated(file.getChanged());

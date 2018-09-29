@@ -88,10 +88,13 @@ public class MainController  {
 
         UserSettings userSettings = settingsService.getUserSettings(username);
 
-        List<MediaFile> children = mediaFiles.size() == 1 ? mediaFileService.getChildrenOf(dir,
-                true,
-                true,
-                true) : getMultiFolderChildren(mediaFiles);
+        List<MediaFile> children;
+        if (mediaFiles.size() == 1) {
+            children = mediaFileService.getChildrenOf(dir, true, true, true);
+        } else { 
+            children = getMultiFolderChildren(mediaFiles);
+        }
+        
         List<MediaFile> files = new ArrayList<>();
         List<MediaFile> subDirs = new ArrayList<>();
         for (MediaFile child : children) {
@@ -129,7 +132,7 @@ public class MainController  {
         map.put("brand", settingsService.getBrand());
         map.put("viewAsList", isViewAsList(request, userSettings));
         if (dir.isAlbum()) {
-            List<MediaFile> sieblingAlbums = getSieblingAlbums(dir);
+            List<MediaFile> sieblingAlbums = getSieblingAlbums(dir, username);
             thereIsMoreSAlbums = trimToSize(showAll, sieblingAlbums, userPaginationPreference);
             map.put("sieblingAlbums", sieblingAlbums);
             map.put("artist", guessArtist(children));
@@ -139,8 +142,10 @@ public class MainController  {
 
         try {
             MediaFile parent = mediaFileService.getParentOf(dir);
-            map.put("parent", parent);
-            map.put("navigateUpAllowed", !mediaFileService.isRoot(parent));
+            if (parent != null) {
+                map.put("parent", parent);
+                map.put("navigateUpAllowed", !mediaFileService.isRoot(parent));
+            }
         } catch (SecurityException x) {
             // Happens if Podcast directory is outside music folder.
         }
@@ -277,14 +282,16 @@ public class MainController  {
         return result;
     }
 
-    private List<MediaFile> getSieblingAlbums(MediaFile dir) {
+    private List<MediaFile> getSieblingAlbums(MediaFile shouldBeAlbum, String username) {
         List<MediaFile> result = new ArrayList<>();
-
-        MediaFile parent = mediaFileService.getParentOf(dir);
-        if (!mediaFileService.isRoot(parent)) {
-            List<MediaFile> sieblings = mediaFileService.getChildrenOf(parent, false, true, true);
-            result.addAll(sieblings.stream().filter(siebling -> siebling.isAlbum() && !siebling.equals(dir)).collect(Collectors.toList()));
+        if (!shouldBeAlbum.isAlbum()) {
+            return result;
         }
+        
+        List<org.airsonic.player.domain.MusicFolder> musicFolders = settingsService.getMusicFoldersForUser(username);
+        List<MediaFile> sieblings = mediaFileService.getAlbumsForAlbumArtist(shouldBeAlbum.getAlbumArtist(), musicFolders);
+
+        result.addAll(sieblings.stream().filter(siebling -> siebling.isAlbum() && !siebling.equals(shouldBeAlbum)).collect(Collectors.toList()));
         return result;
     }
 
