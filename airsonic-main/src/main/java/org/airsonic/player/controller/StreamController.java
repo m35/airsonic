@@ -25,7 +25,6 @@ import org.airsonic.player.io.RangeOutputStream;
 import org.airsonic.player.io.ShoutCastOutputStream;
 import org.airsonic.player.security.JWTAuthenticationToken;
 import org.airsonic.player.service.*;
-import org.airsonic.player.service.sonos.SonosHelper;
 import org.airsonic.player.util.HttpRange;
 import org.airsonic.player.util.StringUtil;
 import org.airsonic.player.util.Util;
@@ -178,8 +177,7 @@ public class StreamController  {
                     response.setContentType(StringUtil.getMimeType("ts")); // HLS is always MPEG TS.
                 } else {
                     String transcodedSuffix = transcodingService.getSuffix(player, file, preferredTargetFormat);
-                    boolean sonos = SonosHelper.AIRSONIC_CLIENT_ID.equals(player.getClientId());
-                    response.setContentType(StringUtil.getMimeType(transcodedSuffix, sonos));
+                    response.setContentType(StringUtil.getMimeType(transcodedSuffix, false));
                     setContentDuration(response, file);
                 }
 

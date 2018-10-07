@@ -24,7 +24,6 @@ import org.airsonic.player.service.AudioScrobblerService;
 import org.airsonic.player.service.MediaFileService;
 import org.airsonic.player.service.SearchService;
 import org.airsonic.player.service.TranscodingService;
-import org.airsonic.player.service.sonos.SonosHelper;
 import org.airsonic.player.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -121,7 +120,7 @@ public class PlayQueueInputStream extends InputStream {
             mediaFileService.incrementPlayCount(file);
 
             // Don't scrobble REST players (except Sonos)
-            if (player.getClientId() == null || player.getClientId().equals(SonosHelper.AIRSONIC_CLIENT_ID)) {
+            if (player.getClientId() == null) {
                 audioScrobblerService.register(file, player.getUsername(), false, null);
             }
 
@@ -146,7 +145,7 @@ public class PlayQueueInputStream extends InputStream {
             }
         } finally {
             // Don't scrobble REST players (except Sonos)
-            if (player.getClientId() == null || player.getClientId().equals(SonosHelper.AIRSONIC_CLIENT_ID)) {
+            if (player.getClientId() == null) {
                 audioScrobblerService.register(currentFile, player.getUsername(), true, null);
             }
             currentInputStream = null;

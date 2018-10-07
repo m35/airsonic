@@ -19,7 +19,6 @@
 package org.airsonic.player.controller;
 
 import org.airsonic.player.service.SettingsService;
-import org.airsonic.player.service.UPnPService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -42,9 +41,6 @@ import java.util.Map;
 @Controller
 @RequestMapping("/dlnaSettings")
 public class DLNASettingsController {
-
-    @Autowired
-    private UPnPService upnpService;
 
     @Autowired
     private SettingsService settingsService;
@@ -70,26 +66,20 @@ public class DLNASettingsController {
     }
 
     private void handleParameters(HttpServletRequest request) {
-        boolean dlnaEnabled = ServletRequestUtils.getBooleanParameter(request, "dlnaEnabled", false);
         String dlnaServerName = StringUtils.trimToNull(request.getParameter("dlnaServerName"));
         String dlnaBaseLANURL = StringUtils.trimToNull(request.getParameter("dlnaBaseLANURL"));
         if (dlnaServerName == null) {
             dlnaServerName = "Airsonic";
         }
 
-        upnpService.setMediaServerEnabled(false);
-        settingsService.setDlnaEnabled(dlnaEnabled);
+        settingsService.setDlnaEnabled(false);
         settingsService.setDlnaServerName(dlnaServerName);
         settingsService.setDlnaBaseLANURL(dlnaBaseLANURL);
         settingsService.save();
-        upnpService.setMediaServerEnabled(dlnaEnabled);
     }
 
     public void setSettingsService(SettingsService settingsService) {
         this.settingsService = settingsService;
     }
 
-    public void setUpnpService(UPnPService upnpService) {
-        this.upnpService = upnpService;
-    }
 }

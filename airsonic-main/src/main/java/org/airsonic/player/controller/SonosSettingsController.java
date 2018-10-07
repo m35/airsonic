@@ -20,7 +20,6 @@ package org.airsonic.player.controller;
 
 import org.airsonic.player.service.NetworkService;
 import org.airsonic.player.service.SettingsService;
-import org.airsonic.player.service.SonosService;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -46,8 +45,6 @@ public class SonosSettingsController {
 
     @Autowired
     private SettingsService settingsService;
-    @Autowired
-    private SonosService sonosService;
 
     @RequestMapping(method = RequestMethod.GET)
     public String doGet(Model model) throws Exception {
@@ -71,25 +68,19 @@ public class SonosSettingsController {
     }
 
     private void handleParameters(HttpServletRequest request) {
-        boolean sonosEnabled = ServletRequestUtils.getBooleanParameter(request, "sonosEnabled", false);
         String sonosServiceName = StringUtils.trimToNull(request.getParameter("sonosServiceName"));
         if (sonosServiceName == null) {
             sonosServiceName = "Airsonic";
         }
 
-        settingsService.setSonosEnabled(sonosEnabled);
+        settingsService.setSonosEnabled(false);
         settingsService.setSonosServiceName(sonosServiceName);
         settingsService.save();
 
-        sonosService.setMusicServiceEnabled(false, NetworkService.getBaseUrl(request));
-        sonosService.setMusicServiceEnabled(sonosEnabled, NetworkService.getBaseUrl(request));
     }
 
     public void setSettingsService(SettingsService settingsService) {
         this.settingsService = settingsService;
     }
 
-    public void setSonosService(SonosService sonosService) {
-        this.sonosService = sonosService;
-    }
 }
