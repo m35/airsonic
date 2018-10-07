@@ -1,12 +1,20 @@
-
 package m35.subsonicapi;
 
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.Reader;
+import java.io.StringReader;
 import java.util.List;
 import org.subsonic.restapi.*;
 
 public class Api {
 
+    private static class LoggedInUser {
+        String email;
+        
+    }
+    private LoggedInUser loggedInUser;
+    
     /*
     Used to test connectivity with the server. Takes no extra parameters.
     Returns an empty <subsonic-response> element on success.
@@ -19,6 +27,10 @@ public class Api {
     Returns a <subsonic-response> element with a nested <license> element on success.     
     */
     public License getLicense() {
+        License license = new License();
+        license.setEmail(loggedInUser.email);
+        license.setValid(true);
+        return license;
     }
 
     /*
@@ -26,6 +38,11 @@ public class Api {
     Returns a <subsonic-response> element with a nested <musicFolders> element on success.
     */
     public MusicFolders getMusicFolders() {
+        MusicFolders musicFolders = new MusicFolders();
+        MusicFolder musicFolder = new MusicFolder();
+        
+        musicFolders.getMusicFolder().add(musicFolder);
+        return musicFolders;
     }
 
     /*
@@ -33,9 +50,11 @@ public class Api {
     Returns a <subsonic-response> element with a nested <indexes> element on success.
     */
     public Indexes getIndexes(
-            Object musicFolderId,   // If specified, only return artists in the music folder with the given ID. See getMusicFolders. 
-            Object ifModifiedSince  // [default:null] If specified, only return a result if the artist collection has changed since the given time (in milliseconds since 1 Jan 1970). 
+            Integer musicFolderId,   // If specified, only return artists in the music folder with the given ID. See getMusicFolders. 
+            Long ifModifiedSince  // [opt] If specified, only return a result if the artist collection has changed since the given time (in milliseconds since 1 Jan 1970). 
     ) {
+        Indexes indexes = new Indexes();
+        return indexes;
     }
 
     /*
@@ -45,6 +64,8 @@ public class Api {
     public Directory getMusicDirectory(
             String id   // A string which uniquely identifies the music folder. Obtained by calls to getIndexes or getMusicDirectory. 
     ) {
+        Directory directory = new Directory();
+        return directory;
     }
 
     /*
@@ -52,15 +73,21 @@ public class Api {
     Returns a <subsonic-response> element with a nested <genres> element on success.
     */
     public Genres getGenres() {
+        Genres genres = new Genres();
+        genres.getGenre();
+        return genres;
     }
 
     /*
     Similar to getIndexes, but organizes music according to ID3 tags. 
     Returns a <subsonic-response> element with a nested <artists> element on success.
     */
-    public Artists getArtists(
-            Object musicFolderId    // [default:null] If specified, only return artists in the music folder with the given ID. See getMusicFolders. 
+    public ArtistsID3 getArtists(
+            Integer musicFolderId    // [default:null] If specified, only return artists in the music folder with the given ID. See getMusicFolders. 
     ) {
+        ArtistsID3 artists = new ArtistsID3();
+        artists.getIndex();
+        return artists;
     }
 
     /*
@@ -68,26 +95,32 @@ public class Api {
     Returns a <subsonic-response> element with a nested <artist> element on success.
     */
     public Artist getArtist(
-            Object id       // The artist ID.
+            String id       // The artist ID.
     ) {
+        Artist artist = new Artist();
+        return artist;
     }
 
     /*
     Returns details for an album, including a list of songs. This method organizes music according to ID3 tags. 
     urns a <subsonic-response> element with a nested <album> element on success.
     */
-    public Album getAlbum(
-            Object id   // The album ID.
+    public AlbumWithSongsID3 getAlbum(
+            String id   // The album ID.
     ) {
+        AlbumWithSongsID3 album = new AlbumWithSongsID3();
+        return album;
     }
     
     /*
     Returns details for a song. 
     Returns a <subsonic-response> element with a nested <song> element on success.
     */
-    public Song getSong(
-            Object id   // The song ID.
+    public Child getSong(
+            String id   // The song ID.
     ) {
+        Child song = new Child();
+        return song;
     }
 
     /*
@@ -95,6 +128,9 @@ public class Api {
     Returns a <subsonic-response> element with a nested <videos> element on success.
     */
     public Videos getVideos() {
+        Videos videos = new Videos();
+        videos.getVideo();
+        return videos;
     }
 
     /*
@@ -102,8 +138,11 @@ public class Api {
     Returns a <subsonic-response> element with a nested <videoInfo> element on success.
     */
     public VideoInfo getVideoInfo(
-            Object id // The video ID.
+            String id // The video ID.
     ) {
+        VideoInfo videoInfo = new VideoInfo();
+        videoInfo.getAudioTrack();
+        return videoInfo;
     }
     
     /*
@@ -111,11 +150,13 @@ public class Api {
     Returns a <subsonic-response> element with a nested <artistInfo> element on success.
     */
     public ArtistInfo getArtistInfo(
-            Object id,  // The artist, album or song ID.
+            String id,  // The artist, album or song ID.
             Integer count,   // [default:20]   Max number of similar artists to return.
             Boolean includeNotPresent    // [default:false] Whether to return artists that are not present in the media library.
     ) {
-        
+        ArtistInfo artistInfo = new ArtistInfo();
+        artistInfo.getSimilarArtist();
+        return artistInfo;
     }
     
     /*
@@ -123,10 +164,12 @@ public class Api {
     Returns a <subsonic-response> element with a nested <artistInfo2> element on success.
     */
     public ArtistInfo2 getArtistInfo2(
-        Object id,  // The artist ID.
+        String id,  // The artist ID.
         Integer count, // [default:20] Max number of similar artists to return.
         Boolean includeNotPresent // [default:false]   Whether to return artists that are not present in the media library.        
     ) {
+        ArtistInfo2 artistInfo = new ArtistInfo2();
+        return artistInfo;
     }
     
     /*
@@ -134,8 +177,10 @@ public class Api {
     Returns a <subsonic-response> element with a nested <albumInfo> element on success.
     */
     public AlbumInfo getAlbumInfo(
-            Object id // The album or song ID.
+            String id // The album or song ID.
     ) {
+        AlbumInfo albumInfo = new AlbumInfo();
+        return albumInfo;
     }
 
     /*
@@ -143,8 +188,10 @@ public class Api {
     Returns a <subsonic-response> element with a nested <albumInfo> element on success.
     */
     public AlbumInfo getAlbumInfo2(
-            Object id // The album ID.
+            String id // The album ID.
     ) {
+        AlbumInfo albumInfo = new AlbumInfo();
+        return albumInfo;
     }
     
     
@@ -153,9 +200,11 @@ public class Api {
     Returns a <subsonic-response> element with a nested <similarSongs> element on success.
     */
     public SimilarSongs getSimilarSongs(
-            Object id, // The artist, album or song ID.
+            String id, // The artist, album or song ID.
             Integer count // [default:50] Max number of songs to return.
     ) {
+        SimilarSongs similarSongs = new SimilarSongs();
+        return similarSongs;
     }
 
     /*
@@ -163,9 +212,11 @@ public class Api {
     Returns a <subsonic-response> element with a nested <similarSongs2> element on success.
     */
     public SimilarSongs2 getSimilarSongs2(
-            Object id, // The artist ID.
+            String id, // The artist ID.
             Integer count // [default:50]  Max number of songs to return.
     ) {
+        SimilarSongs2 similarSongs = new SimilarSongs2();
+        return similarSongs;
     }
     
     /*
@@ -173,9 +224,11 @@ public class Api {
     Returns a <subsonic-response> element with a nested <topSongs> element on success.
     */
     public TopSongs getTopSongs(
-            Object artist,  // The artist name
+            String artist,  // The artist name
             Integer count  // [default:50]  Max number of songs to return.
     ) {
+        TopSongs topSongs = new TopSongs();
+        return topSongs;
     }
     
     
@@ -190,9 +243,11 @@ public class Api {
         Integer fromYear, // [req if type=year] The first year in the range. If fromYear > toYear a reverse chronological list is returned.
         Integer toYear, // [req if type=year] The last year in the range.
         String genre, // [req if type=genre] The name of the genre, e.g., "Rock".
-        Object musicFolderId // [opt] (Since 1.11.0) Only return albums in the music folder with the given ID. See getMusicFolders.
+        Integer musicFolderId // [opt] (Since 1.11.0) Only return albums in the music folder with the given ID. See getMusicFolders.
             
     ) {
+        AlbumList albumList = new AlbumList();
+        return albumList;
     }
 
     /*
@@ -206,33 +261,39 @@ public class Api {
         Integer fromYear, // [req if type=year] The first year in the range. If fromYear > toYear a reverse chronological list is returned.
         Integer toYear, // [req if type=year] The last year in the range.
         String genre, // [req if type=genre] The name of the genre, e.g., "Rock".
-        Object musicFolderId // [opt] (Since 1.12.0) Only return albums in the music folder with the given ID. See getMusicFolders.
+        Integer musicFolderId // [opt] (Since 1.12.0) Only return albums in the music folder with the given ID. See getMusicFolders.
     ) {
+        AlbumList2 albumList = new AlbumList2();
+        return albumList;
     }
 
     /*
     Returns random songs matching the given criteria. 
     Returns a <subsonic-response> element with a nested <randomSongs> element on success.
     */
-    public RandomSongs getRandomSongs(
+    public Songs getRandomSongs(
         Integer size, // [default:10] The maximum number of songs to return. Max 500.
         String genre, // [opt] Only returns songs belonging to this genre.
         Integer fromYear, // [opt] Only return songs published after or in this year.
         Integer toYear, // [opt] Only return songs published before or in this year.
-        Object musicFolderId // [opt] Only return songs in the music folder with the given ID. See getMusicFolders.
+        Integer musicFolderId // [opt] Only return songs in the music folder with the given ID. See getMusicFolders.
     ) {
+        Songs randomSongs = new Songs();
+        return randomSongs;
     }
 
     /*
     Returns songs in a given genre. 
     Returns a <subsonic-response> element with a nested <songsByGenre> element on success.
     */
-    public SongsByGenre getSongsByGenre(
+    public Songs getSongsByGenre(
         Object genre, //  The genre, as returned by getGenres.
         Integer count, // [default:10] The maximum number of songs to return. Max 500.
         Integer offset, // [default:0] The offset. Useful if you want to page through the songs in a genre.
-        Object musicFolderId // [opt] (Since 1.12.0) Only return albums in the music folder with the given ID. See getMusicFolders.
+        Integer musicFolderId // [opt] (Since 1.12.0) Only return albums in the music folder with the given ID. See getMusicFolders.
     ) {
+        Songs songs = new Songs();
+        return songs;
     }
 
     /*
@@ -240,6 +301,8 @@ public class Api {
     Returns a <subsonic-response> element with a nested <nowPlaying> element on success.
     */
     public NowPlaying getNowPlaying() {
+        NowPlaying nowPlaying = new NowPlaying();
+        return nowPlaying;
     }
 
     /*
@@ -247,16 +310,20 @@ public class Api {
     Returns a <subsonic-response> element with a nested <starred> element on success.
     */
     public Starred getStarred(
-            Object musicFolderId // [opt] (Since 1.12.0) Only return results from the music folder with the given ID. See getMusicFolders.
+            Integer musicFolderId // [opt] (Since 1.12.0) Only return results from the music folder with the given ID. See getMusicFolders.
     ) {
+        Starred starred = new Starred();
+        return starred;
     }
 
     /*
     Similar to getStarred, but organizes music according to ID3 tags. 
     */
-    public Starred getStarred2(
-            Object musicFolderId // [opt] (Since 1.12.0) Only return results from the music folder with the given ID. See getMusicFolders.
+    public Starred2 getStarred2(
+            Integer musicFolderId // [opt] (Since 1.12.0) Only return results from the music folder with the given ID. See getMusicFolders.
     ) {
+        Starred2 starred = new Starred2();
+        return starred;
     }
 
 
@@ -275,6 +342,8 @@ public class Api {
         Integer offset, // [default:0] Search result offset. Used for paging.
         Long newerThan // [opt] Only return matches that are newer than this. Given as milliseconds since 1970.
     ) {
+        SearchResult searchResult = new SearchResult();
+        return searchResult;
     }
 
     /*
@@ -289,8 +358,10 @@ public class Api {
         Integer albumOffset, // [default:0] Search result offset for albums. Used for paging.
         Integer songCount, // [default:20] Maximum number of songs to return.
         Integer songOffset, // [default:0] Search result offset for songs. Used for paging.
-        Object musicFolderId // [opt] (Since 1.12.0) Only return results from the music folder with the given ID. See getMusicFolders.
+        Integer musicFolderId // [opt] (Since 1.12.0) Only return results from the music folder with the given ID. See getMusicFolders.
     ) {
+        SearchResult2 searchResult = new SearchResult2();
+        return searchResult;
     }
 
     /*
@@ -305,8 +376,10 @@ public class Api {
         Integer albumOffset, // [default:0] Search result offset for albums. Used for paging.
         Integer songCount, // [default:20] Maximum number of songs to return.
         Integer songOffset, // [default:0] Search result offset for songs. Used for paging.
-        Object musicFolderId // [opt] (Since 1.12.0) Only return results from music folder with the given ID. See getMusicFolders.
+        Integer musicFolderId // [opt] (Since 1.12.0) Only return results from music folder with the given ID. See getMusicFolders.
     ) {
+        SearchResult3 searchResult = new SearchResult3();
+        return searchResult;
     }
 
     /*
@@ -316,6 +389,8 @@ public class Api {
     public Playlists getPlaylists(
             String username // [opt] (Since 1.8.0) If specified, return playlists for this user rather than for the authenticated user. The authenticated user must have admin role if this parameter is used. 
     ) {
+        Playlists playlists = new Playlists();
+        return playlists;
     }
 
     /*
@@ -323,8 +398,10 @@ public class Api {
     Returns a <subsonic-response> element with a nested <playlist> element on success.
     */
     public Playlist getPlaylist(
-            Object id //   ID of the playlist to return, as obtained by getPlaylists.
+            String id //   ID of the playlist to return, as obtained by getPlaylists.
     ) {
+        Playlist playlist = new Playlist();
+        return playlist;
     }
 
     /*
@@ -332,10 +409,12 @@ public class Api {
     Since 1.14.0 the newly created/updated playlist is returned. In earlier versions an empty <subsonic-response> element is returned. 
     */
     public Playlist createPlaylist(
-        Object playlistId, // [req if updating] The playlist ID.
+        String playlistId, // [req if updating] The playlist ID.
         String name, // [req if updating] The human-readable name of the playlist.
-        Object songId // [opt] ID of a song in the playlist. Use one songId parameter for each song in the playlist.
+        List<Object> songId // [opt] ID of a song in the playlist. Use one songId parameter for each song in the playlist.
     ) {
+        Playlist playlist = new Playlist();
+        return playlist;
     }
 
 
@@ -344,12 +423,12 @@ public class Api {
     Returns an empty <subsonic-response> element on success. 
     */
     public void updatePlaylist(
-        Object playlistId, //  The playlist ID.
+        String playlistId, //  The playlist ID.
         String name, // [opt] The human-readable name of the playlist.
         String comment, // [opt] The playlist comment.
         Boolean public_, // [default:false?] true if the playlist should be visible to all users, false otherwise.
-        List songIdToAdd, // [opt] Add this song with this ID to the playlist. Multiple parameters allowed.
-        List songIndexToRemove // [opt] Remove the song at this position in the playlist. Multiple parameters allowed.
+        List<Object> songIdToAdd, // [opt] Add this song with this ID to the playlist. Multiple parameters allowed.
+        List<Object> songIndexToRemove // [opt] Remove the song at this position in the playlist. Multiple parameters allowed.
     ) {
     }
 
@@ -360,7 +439,7 @@ public class Api {
     Returns an empty <subsonic-response> element on success. 
     */
     public void deletePlaylist(
-            Object id //  ID of the playlist to delete, as obtained by getPlaylists.
+            String id //  ID of the playlist to delete, as obtained by getPlaylists.
     ) {
     }
 
@@ -370,14 +449,15 @@ public class Api {
     Returns binary data on success, or an XML document on error (in which case the HTTP content type will start with "text/xml"). 
     */
     public byte[] stream(
-            Object id, //  A string which uniquely identifies the file to stream. Obtained by calls to getMusicDirectory.
+            String id, //  A string which uniquely identifies the file to stream. Obtained by calls to getMusicDirectory.
             Object maxBitRate, // [opt] (Since 1.2.0) If specified, the server will attempt to limit the bitrate to this value, in kilobits per second. If set to zero, no limit is imposed. 
             Object format, // [opt] (Since 1.6.0) Specifies the preferred target format (e.g., "mp3" or "flv") in case there are multiple applicable transcodings. Starting with 1.9.0 you can use the special value "raw" to disable transcoding. 
-            Object timeOffset, // [opt] Only applicable to video streaming. If specified, start streaming at the given offset (in seconds) into the video. Typically used to implement video skipping. 
+            Integer timeOffset, // [opt] Only applicable to video streaming. If specified, start streaming at the given offset (in seconds) into the video. Typically used to implement video skipping. 
             Object size, // [opt] (Since 1.6.0) Only applicable to video streaming. Requested video size specified as WxH, for instance "640x480". 
-            Object estimateContentLength, // [default:false] (Since 1.8.0). If set to "true", the Content-Length HTTP header will be set to an estimated value for transcoded or downsampled media. 
+            Boolean estimateContentLength, // [default:false] (Since 1.8.0). If set to "true", the Content-Length HTTP header will be set to an estimated value for transcoded or downsampled media. 
             Boolean converted // [default:false] (Since 1.14.0) Only applicable to video streaming. Subsonic can optimize videos for streaming by converting them to MP4. If a conversion exists for the video in question, then setting this parameter to "true" will cause the converted video to be returned instead of the original. 
     ) {
+        return new byte[0];
     }
 
     /*
@@ -386,8 +466,9 @@ public class Api {
     Returns binary data on success, or an XML document on error (in which case the HTTP content type will start with "text/xml"). 
     */
     public byte[] download(
-            Object id //  A string which uniquely identifies the file to download. Obtained by calls to getMusicDirectory.
+            String id //  A string which uniquely identifies the file to download. Obtained by calls to getMusicDirectory.
     ) {
+        return new byte[0];
     }
 
     /*
@@ -395,11 +476,14 @@ public class Api {
     Creates an HLS (HTTP Live Streaming) playlist used for streaming video or audio. HLS is a streaming protocol implemented by Apple and works by breaking the overall stream into a sequence of small HTTP-based file downloads. It's supported by iOS and newer versions of Android. This method also supports adaptive bitrate streaming, see the bitRate parameter. 
     Returns an M3U8 playlist on success (content type "application/vnd.apple.mpegurl"), or an XML document on error (in which case the HTTP content type will start with "text/xml"). 
     */
-    public void hls(
-            Object id, //  A string which uniquely identifies the media file to stream.
+    public BufferedReader hls(
+            String id, //  A string which uniquely identifies the media file to stream.
             Object bitrate, // [opt] If specified, the server will attempt to limit the bitrate to this value, in kilobits per second. If this parameter is specified more than once, the server will create a variant playlist, suitable for adaptive bitrate streaming. The playlist will support streaming at all the specified bitrates. The server will automatically choose video dimensions that are suitable for the given bitrates. Since 1.9.0 you may explicitly request a certain width (480) and height (360) like so: bitRate=1000@480x360 
-            Object audioTrack // [opt] The ID of the audio track to use. See getVideoInfo for how to get the list of available audio tracks for a video. 
+            String audioTrack // [opt] The ID of the audio track to use. See getVideoInfo for how to get the list of available audio tracks for a video. 
     ) {
+        Reader reader = new StringReader("content");
+        BufferedReader bufferedReader = new BufferedReader(reader);
+        return bufferedReader;
     }
 
     /*
@@ -408,9 +492,11 @@ public class Api {
     Returns the raw video captions. 
     */
     public void getCaptions(
-            Object id, //  The ID of the video.
+            String id, //  The ID of the video.
             String format // [opt] Preferred captions format ("srt" or "vtt").
     ) {
+        // what is this supposed to return?
+        throw new UnsupportedOperationException();
     }
 
     /*
@@ -419,20 +505,25 @@ public class Api {
     Returns the cover art image in binary form. 
     */
     public BufferedImage getCoverArt(
-            Object id, //  The ID of a song, album or artist.
-            Object size // [opt] If specified, scale image to this size.
+            String id, //  The ID of a song, album or artist.
+            Integer size // [opt] If specified, scale image to this size.
     ) {
+        // size = square width and height
+        BufferedImage bufferedImage = new BufferedImage(128, 128, BufferedImage.TYPE_INT_RGB);
+        return bufferedImage;
     }
 
     /*
     http://your-server/rest/getLyrics Since 1.2.0 
     Searches for and returns lyrics for a given song. 
-    Returns a <subsonic-response> element with a nested <lyrics> element on success. The <lyrics> element is empty if no matching lyrics was found. Example. 
+    Returns a <subsonic-response> element with a nested <lyrics> element on success. The <lyrics> element is empty if no matching lyrics was found. 
     */
     public Lyrics getLyrics(
-            Object artist, // [opt] The artist name.
-            Object title // [opt] The song title.
+            String artist, // [opt] The artist name.
+            String title // [opt] The song title.
     ) {
+        Lyrics lyrics = new Lyrics();
+        return lyrics;
     }
 
     /*
@@ -443,6 +534,8 @@ public class Api {
     public BufferedImage getAvatar(
             String username //  The user in question.
     ) {
+        BufferedImage bufferedImage = new BufferedImage(128, 128, BufferedImage.TYPE_INT_RGB);
+        return bufferedImage;
     }
 
     /*
@@ -451,7 +544,7 @@ public class Api {
     Returns an empty <subsonic-response> element on success. 
     */
     public void star(
-            Object id, // [opt] The ID of the file (song) or folder (album/artist) to star. Multiple parameters allowed.
+            List<String> id, // [opt] The ID of the file (song) or folder (album/artist) to star. Multiple parameters allowed.
             Object albumId, // [opt] The ID of an album to star. Use this rather than id if the client accesses the media collection according to ID3 tags rather than file structure. Multiple parameters allowed. 
             Object artistId // [opt] The ID of an artist to star. Use this rather than id if the client accesses the media collection according to ID3 tags rather than file structure. Multiple parameters allowed. 
     ) {
@@ -463,7 +556,7 @@ public class Api {
     Returns an empty <subsonic-response> element on success. 
     */
     public void unstar(
-            Object id, // [opt] The ID of the file (song) or folder (album/artist) to unstar. Multiple parameters allowed.
+            List<String> id, // [opt] The ID of the file (song) or folder (album/artist) to unstar. Multiple parameters allowed.
             Object albumId, // [opt] The ID of an album to unstar. Use this rather than id if the client accesses the media collection according to ID3 tags rather than file structure. Multiple parameters allowed. 
             Object artistId // [opt] The ID of an artist to unstar. Use this rather than id if the client accesses the media collection according to ID3 tags rather than file structure. Multiple parameters allowed. 
     ) {
@@ -475,7 +568,7 @@ public class Api {
     Returns an empty <subsonic-response> element on success. 
     */
     public void setRating(
-            Object id, //  A string which uniquely identifies the file (song) or folder (album/artist) to rate.
+            String id, //  A string which uniquely identifies the file (song) or folder (album/artist) to rate.
             int rating //  The rating between 1 and 5 (inclusive), or 0 to remove the rating.
     ) {
     }
@@ -490,7 +583,7 @@ public class Api {
     Returns an empty <subsonic-response> element on success. 
     */
     public void scrobble(
-            Object id, //  A string which uniquely identifies the file to scrobble.
+            String id, //  A string which uniquely identifies the file to scrobble.
             Long time, // [opt] (Since 1.8.0) The time (in milliseconds since 1 Jan 1970) at which the song was listened to. 
             Boolean submission // [default:true] Whether this is a "submission" or a "now playing" notification.
     ) {
@@ -499,21 +592,25 @@ public class Api {
     /*
     http://your-server/rest/getShares Since 1.6.0 
     Returns information about shared media this user is allowed to manage. Takes no extra parameters. 
-    Returns a <subsonic-response> element with a nested <shares> element on success. Example. 
+    Returns a <subsonic-response> element with a nested <shares> element on success. 
     */
     public Shares getShares() {
+        Shares shares = new Shares();
+        return shares;
     }
 
     /*
     http://your-server/rest/createShare Since 1.6.0 
     Creates a public URL that can be used by anyone to stream music or video from the Subsonic server. The URL is short and suitable for posting on Facebook, Twitter etc. Note: The user must be authorized to share (see Settings > Users > User is allowed to share files with anyone). 
-    Returns a <subsonic-response> element with a nested <shares> element on success, which in turns contains a single <share> element for the newly created share. Example. 
+    Returns a <subsonic-response> element with a nested <shares> element on success, which in turns contains a single <share> element for the newly created share. 
     */
     public Share createShare(
-            Object id, //  ID of a song, album or video to share. Use one id parameter for each entry to share.
+            String id, //  ID of a song, album or video to share. Use one id parameter for each entry to share.
             String description, // [opt] A user-defined description that will be displayed to people visiting the shared media.
             Long expires // [opt] The time at which the share expires. Given as milliseconds since 1970.
     ) {
+        Share share = new Share();
+        return share;
     }
 
     /*
@@ -522,7 +619,7 @@ public class Api {
     Returns an empty <subsonic-response> element on success. 
     */
     public void updateShare(
-            Object id, //  ID of the share to update.
+            String id, //  ID of the share to update.
             String description, // [opt] A user-defined description that will be displayed to people visiting the shared media.
             Long expires // [opt] The time at which the share expires. Given as milliseconds since 1970, or zero to remove the expiration. 
     ) {
@@ -534,29 +631,33 @@ public class Api {
     Returns an empty <subsonic-response> element on success. 
     */
     public void deleteShare(
-            Object id //  ID of the share to delete.
+            String id //  ID of the share to delete.
     ) {
     }
 
     /*
     http://your-server/rest/getPodcasts Since 1.6.0 
     Returns all Podcast channels the server subscribes to, and (optionally) their episodes. This method can also be used to return details for only one channel - refer to the id parameter. A typical use case for this method would be to first retrieve all channels without episodes, and then retrieve all episodes for the single channel the user selects. 
-    Returns a <subsonic-response> element with a nested <podcasts> element on success. Example. 
+    Returns a <subsonic-response> element with a nested <podcasts> element on success. 
     */
     public Podcasts getPodcasts(
-            Object includeEpisodes, // [default:true] (Since 1.9.0) Whether to include Podcast episodes in the returned result.
-            Object id // [opt] (Since 1.9.0) If specified, only return the Podcast channel with this ID.
+            Boolean includeEpisodes, // [default:true] (Since 1.9.0) Whether to include Podcast episodes in the returned result.
+            String id // [opt] (Since 1.9.0) If specified, only return the Podcast channel with this ID.
     ) {
+        Podcasts podcasts = new Podcasts();
+        return podcasts;
     }
 
     /*
     http://your-server/rest/getNewestPodcasts Since 1.13.0 
     Returns the most recently published Podcast episodes. 
-    Returns a <subsonic-response> element with a nested <newestPodcasts> element on success. Example. 
+    Returns a <subsonic-response> element with a nested <newestPodcasts> element on success. 
     */
     public NewestPodcasts getNewestPodcasts(
             Integer count // [default:20] The maximum number of episodes to return.
     ) {
+        NewestPodcasts newestPodcasts = new NewestPodcasts();
+        return newestPodcasts;
     }
 
     /*
@@ -583,7 +684,7 @@ public class Api {
     Returns an empty <subsonic-response> element on success. 
     */
     public void deletePodcastChannel(
-            Object id //  The ID of the Podcast channel to delete.
+            String id //  The ID of the Podcast channel to delete.
     ) {
     }
 
@@ -593,7 +694,7 @@ public class Api {
     Returns an empty <subsonic-response> element on success. 
     */
     public void deletePodcastEpisode(
-            Object id //  The ID of the Podcast episode to delete.
+            String id //  The ID of the Podcast episode to delete.
     ) {
     }
 
@@ -603,7 +704,7 @@ public class Api {
     Returns an empty <subsonic-response> element on success. 
     */
     public void downloadPodcastEpisode(
-            Object id //  The ID of the Podcast episode to download.
+            String id //  The ID of the Podcast episode to download.
     ) {
     }
 
@@ -615,18 +716,22 @@ public class Api {
     public JukeboxStatus jukeboxControl(
             String action, //  The operation to perform. Must be one of: get, status (since 1.7.0), set (since 1.7.0), start, stop, skip, add, clear, remove, shuffle, setGain 
             Integer index, // [opt] Used by skip and remove. Zero-based index of the song to skip to or remove. 
-            Object offset, // [opt] (Since 1.7.0) Used by skip. Start playing this many seconds into the track. 
-            Object id, // [opt] Used by add and set. ID of song to add to the jukebox playlist. Use multiple id parameters to add many songs in the same request. (set is similar to a clear followed by a add, but will not change the currently playing track.) 
+            Integer offset, // [opt] (Since 1.7.0) Used by skip. Start playing this many seconds into the track. 
+            String id, // [opt] Used by add and set. ID of song to add to the jukebox playlist. Use multiple id parameters to add many songs in the same request. (set is similar to a clear followed by a add, but will not change the currently playing track.) 
             Float gain // [opt] Used by setGain to control the playback volume. A float value between 0.0 and 1.0.
     ) {
+        JukeboxStatus jukeboxStatus = new JukeboxPlaylist();
+        return jukeboxStatus;
     }
 
     /*
     http://your-server/rest/getInternetRadioStations Since 1.9.0 
     Returns all internet radio stations. Takes no extra parameters. 
-    Returns a <subsonic-response> element with a nested <internetRadioStations> element on success. Example. 
+    Returns a <subsonic-response> element with a nested <internetRadioStations> element on success. 
     */
     public InternetRadioStations getInternetRadioStations() {
+        InternetRadioStations internetRadioStations = new InternetRadioStations();
+        return internetRadioStations;
     }
 
     /*
@@ -647,7 +752,7 @@ public class Api {
     Returns an empty <subsonic-response> element on success. 
     */
     public void updateInternetRadioStation(
-            Object id, //  The ID for the station.
+            String id, //  The ID for the station.
             String streamUrl, //  The stream URL for the station.
             String name, //  The user-defined name for the station.
             String homepageUrl // [opt] The home page URL for the station.
@@ -660,18 +765,20 @@ public class Api {
     Returns an empty <subsonic-response> element on success. 
     */
     public void deleteInternetRadioStation(
-            Object id //  The ID for the station.
+            String id //  The ID for the station.
     ) {
     }
 
     /*
     http://your-server/rest/getChatMessages Since 1.2.0 
     Returns the current visible (non-expired) chat messages. 
-    Returns a <subsonic-response> element with a nested <chatMessages> element on success. Example. 
+    Returns a <subsonic-response> element with a nested <chatMessages> element on success. 
     */
     public ChatMessages getChatMessages(
             String since // [opt] Only return messages newer than this time (in millis since Jan 1 1970).
     ) {
+        ChatMessages chatMessages = new ChatMessages();
+        return chatMessages;
     }
 
     /*
@@ -687,19 +794,23 @@ public class Api {
     /*
     http://your-server/rest/getUser Since 1.3.0 
     Get details about a given user, including which authorization roles and folder access it has. Can be used to enable/disable certain features in the client, such as jukebox control. 
-    Returns a <subsonic-response> element with a nested <user> element on success. Example. 
+    Returns a <subsonic-response> element with a nested <user> element on success. 
     */
     public User getUser(
-            Object username //  The name of the user to retrieve. You can only retrieve your own user unless you have admin privileges. 
+            String username //  The name of the user to retrieve. You can only retrieve your own user unless you have admin privileges. 
     ) {
+        User user = new User();
+        return user;
     }
 
     /*
     http://your-server/rest/getUsers Since 1.8.0 
     Get details about all users, including which authorization roles and folder access they have. Only users with admin privileges are allowed to call this method. 
-    Returns a <subsonic-response> element with a nested <users> element on success. Example. 
+    Returns a <subsonic-response> element with a nested <users> element on success. 
     */
     public Users getUsers() {
+        Users users = new Users();
+        return users;
     }
 
     /*
@@ -708,10 +819,10 @@ public class Api {
     Returns an empty <subsonic-response> element on success. 
     */
     public void createUser(
-            Object username, //  The name of the new user.
+            String username, //  The name of the new user.
             String password, //  The password of the new user, either in clear text of hex-encoded (see above).
             String email, //  The email address of the new user.
-            Object ldapAuthenticated, // [default:false] Whether the user is authenicated in LDAP.
+            Boolean ldapAuthenticated, // [default:false] Whether the user is authenicated in LDAP.
             Boolean adminRole, // [default:false] Whether the user is administrator.
             Boolean settingsRole, // [default:true] Whether the user is allowed to change personal settings and password.
             Boolean streamRole, // [default:true] Whether the user is allowed to play files.
@@ -724,7 +835,7 @@ public class Api {
             Boolean podcastRole, // [default:false] Whether the user is allowed to administrate Podcasts.
             Boolean shareRole, // [default:false] (Since 1.8.0) Whether the user is allowed to share files with anyone.
             Boolean videoConversionRole, // [default:false] (Since 1.15.0) Whether the user is allowed to start video conversions.
-            List musicFolderId // [opt] All folders (Since 1.12.0) IDs of the music folders the user is allowed access to. Include the parameter once for each folder.
+            List<Object> musicFolderId // [opt] All folders (Since 1.12.0) IDs of the music folders the user is allowed access to. Include the parameter once for each folder.
     ) {
     }
 
@@ -749,7 +860,7 @@ public class Api {
             Object podcastRole, // [opt] Whether the user is allowed to administrate Podcasts.
             Object shareRole, // [opt] Whether the user is allowed to share files with anyone.
             Object videoConversionRole, // false (Since 1.15.0) Whether the user is allowed to start video conversions.
-            Object musicFolderId, // [opt] (Since 1.12.0) IDs of the music folders the user is allowed access to. Include the parameter once for each folder.
+            Integer musicFolderId, // [opt] (Since 1.12.0) IDs of the music folders the user is allowed access to. Include the parameter once for each folder.
             Object maxBitRate // [opt] (Since 1.13.0) The maximum bit rate (in Kbps) for the user. Audio streams of higher bit rates are automatically downsampled to this bit rate. Legal values: 0 (no limit), 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320. 
     ) {
     }
@@ -778,7 +889,7 @@ public class Api {
     /*
     http://your-server/rest/getBookmarks Since 1.9.0 
     Returns all bookmarks for this user. A bookmark is a position within a certain media file. 
-    Returns a <subsonic-response> element with a nested <bookmarks> element on success. Example. 
+    Returns a <subsonic-response> element with a nested <bookmarks> element on success. 
     */
     public void getBookmarks() {
     }
@@ -789,7 +900,7 @@ public class Api {
     Returns an empty <subsonic-response> element on success. 
     */
     public void createBookmark(
-            Object id, //  ID of the media file to bookmark. If a bookmark already exists for this file it will be overwritten. 
+            String id, //  ID of the media file to bookmark. If a bookmark already exists for this file it will be overwritten. 
             Long position, //  The position (in milliseconds) within the media file.
             String comment // [opt] A user-defined comment.
     ) {
@@ -801,16 +912,18 @@ public class Api {
     Returns an empty <subsonic-response> element on success. 
     */
     public void deleteBookmark(
-            Object id //  ID of the media file for which to delete the bookmark. Other users' bookmarks are not affected.
+            String id //  ID of the media file for which to delete the bookmark. Other users' bookmarks are not affected.
     ) {
     }
 
     /*
     http://your-server/rest/getPlayQueue Since 1.12.0 
     Returns the state of the play queue for this user (as set by savePlayQueue). This includes the tracks in the play queue, the currently playing track, and the position within this track. Typically used to allow a user to move between different clients/apps while retaining the same play queue (for instance when listening to an audio book). 
-    Returns a <subsonic-response> element with a nested <playQueue> element on success, or an empty <subsonic-response> if no play queue has been saved. Example. 
+    Returns a <subsonic-response> element with a nested <playQueue> element on success, or an empty <subsonic-response> if no play queue has been saved. 
     */
     public PlayQueue getPlayQueue() {
+        PlayQueue playQueue = new PlayQueue();
+        return playQueue;
     }
 
     /*
@@ -819,7 +932,7 @@ public class Api {
     Returns an empty <subsonic-response> element on success. 
     */
     public void savePlayQueue(
-            Object id, //  ID of a song in the play queue. Use one id parameter for each song in the play queue.
+            String id, //  ID of a song in the play queue. Use one id parameter for each song in the play queue.
             Object current, // [opt] The ID of the current playing song.
             Long position // [opt] The position in milliseconds within the currently playing song.
     ) {
@@ -828,17 +941,21 @@ public class Api {
     /*
     http://your-server/rest/getScanStatus Since 1.15.0 
     Returns the current status for media library scanning. Takes no extra parameters. 
-    Returns a <subsonic-response> element with a nested <scanStatus> element on success. Example. 
+    Returns a <subsonic-response> element with a nested <scanStatus> element on success. 
     */
     public ScanStatus getScanStatus() {
+        ScanStatus scanStatus = new ScanStatus();
+        return scanStatus;
     }
 
     /*
     http://your-server/rest/startScan Since 1.15.0 
     Initiates a rescan of the media libraries. Takes no extra parameters. 
-    Returns a <subsonic-response> element with a nested <scanStatus> element on success. Example. 
+    Returns a <subsonic-response> element with a nested <scanStatus> element on success. 
     */
     public ScanStatus startScan() {
+        ScanStatus scanStatus = new ScanStatus();
+        return scanStatus;
     }
 
 }
