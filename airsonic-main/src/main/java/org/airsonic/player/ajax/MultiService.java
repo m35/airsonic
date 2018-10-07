@@ -23,7 +23,6 @@ import org.airsonic.player.domain.ArtistBio;
 import org.airsonic.player.domain.MediaFile;
 import org.airsonic.player.domain.MusicFolder;
 import org.airsonic.player.domain.UserSettings;
-import org.airsonic.player.service.LastFmService;
 import org.airsonic.player.service.MediaFileService;
 import org.airsonic.player.service.SecurityService;
 import org.airsonic.player.service.SettingsService;
@@ -37,6 +36,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -53,54 +53,16 @@ public class MultiService {
     private static final Logger LOG = LoggerFactory.getLogger(MultiService.class);
 
     @Autowired
-    private MediaFileService mediaFileService;
-    @Autowired
-    private LastFmService lastFmService;
-    @Autowired
     private SecurityService securityService;
     @Autowired
     private SettingsService settingsService;
 
     public ArtistInfo getArtistInfo(int mediaFileId, int maxSimilarArtists, int maxTopSongs) {
-        HttpServletRequest request = WebContextFactory.get().getHttpServletRequest();
-        UserSettings userSettings = settingsService.getUserSettings(securityService.getCurrentUsername(request));
-
-        MediaFile mediaFile = mediaFileService.getMediaFile(mediaFileId);
-        List<SimilarArtist> similarArtists = getSimilarArtists(mediaFileId, maxSimilarArtists);
-        ArtistBio artistBio = lastFmService.getArtistBio(mediaFile, userSettings.getLocale());
-        List<TopSong> topSongs = getTopSongs(mediaFile, maxTopSongs);
+        List<SimilarArtist> similarArtists = Collections.emptyList();
+        ArtistBio artistBio = null;
+        List<TopSong> topSongs = Collections.emptyList();
 
         return new ArtistInfo(similarArtists, artistBio, topSongs);
-    }
-
-    private List<TopSong> getTopSongs(MediaFile mediaFile, int limit) {
-        HttpServletRequest request = WebContextFactory.get().getHttpServletRequest();
-        String username = securityService.getCurrentUsername(request);
-        List<MusicFolder> musicFolders = settingsService.getMusicFoldersForUser(username);
-
-        List<TopSong> result = new ArrayList<TopSong>();
-        List<MediaFile> files = lastFmService.getTopSongs(mediaFile, limit, musicFolders);
-        mediaFileService.populateStarredDate(files, username);
-        for (MediaFile file : files) {
-            result.add(new TopSong(file.getId(), file.getTitle(), file.getArtist(), file.getAlbumName(),
-                                   file.getDurationString(), file.getStarredDate() != null));
-        }
-        return result;
-    }
-
-    private List<SimilarArtist> getSimilarArtists(int mediaFileId, int limit) {
-        HttpServletRequest request = WebContextFactory.get().getHttpServletRequest();
-        String username = securityService.getCurrentUsername(request);
-        List<MusicFolder> musicFolders = settingsService.getMusicFoldersForUser(username);
-
-        MediaFile artist = mediaFileService.getMediaFile(mediaFileId);
-        List<MediaFile> similarArtists = lastFmService.getSimilarArtists(artist, limit, false, musicFolders);
-        SimilarArtist[] result = new SimilarArtist[similarArtists.size()];
-        for (int i = 0; i < result.length; i++) {
-            MediaFile similarArtist = similarArtists.get(i);
-            result[i] = new SimilarArtist(similarArtist.getId(), similarArtist.getName());
-        }
-        return Arrays.asList(result);
     }
 
     public void setShowSideBar(boolean show) {
@@ -110,14 +72,6 @@ public class MultiService {
         userSettings.setShowSideBar(show);
         userSettings.setChanged(new Date());
         settingsService.updateUserSettings(userSettings);
-    }
-
-    public void setMediaFileService(MediaFileService mediaFileService) {
-        this.mediaFileService = mediaFileService;
-    }
-
-    public void setLastFmService(LastFmService lastFmService) {
-        this.lastFmService = lastFmService;
     }
 
     public void setSecurityService(SecurityService securityService) {

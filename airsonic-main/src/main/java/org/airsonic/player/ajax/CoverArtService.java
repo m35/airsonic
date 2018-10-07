@@ -19,9 +19,7 @@
  */
 package org.airsonic.player.ajax;
 
-import org.airsonic.player.domain.LastFmCoverArt;
 import org.airsonic.player.domain.MediaFile;
-import org.airsonic.player.service.LastFmService;
 import org.airsonic.player.service.MediaFileService;
 import org.airsonic.player.service.SecurityService;
 import org.airsonic.player.util.StringUtil;
@@ -58,12 +56,6 @@ public class CoverArtService {
     private SecurityService securityService;
     @Autowired
     private MediaFileService mediaFileService;
-    @Autowired
-    private LastFmService lastFmService;
-
-    public List<LastFmCoverArt> searchCoverArt(String artist, String album) {
-        return lastFmService.searchCoverArt(artist, album);
-    }
 
     /**
      * Downloads and saves the cover art at the given URL.
@@ -177,7 +169,4 @@ public class CoverArtService {
         this.mediaFileService = mediaFileService;
     }
 
-    public void setLastFmService(LastFmService lastFmService) {
-        this.lastFmService = lastFmService;
-    }
 }

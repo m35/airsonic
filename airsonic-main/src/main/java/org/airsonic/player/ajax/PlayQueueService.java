@@ -58,8 +58,6 @@ public class PlayQueueService {
     @Autowired
     private MediaFileService mediaFileService;
     @Autowired
-    private LastFmService lastFmService;
-    @Autowired
     private SecurityService securityService;
     @Autowired
     private SearchService searchService;
@@ -273,8 +271,7 @@ public class PlayQueueService {
         String username = securityService.getCurrentUsername(request);
         boolean queueFollowingSongs = settingsService.getUserSettings(username).isQueueFollowingSongs();
 
-        List<MusicFolder> musicFolders = settingsService.getMusicFoldersForUser(username);
-        List<MediaFile> files = lastFmService.getTopSongs(mediaFileService.getMediaFile(id), 50, musicFolders);
+        List<MediaFile> files = Collections.emptyList();
         if (!files.isEmpty() && index != null) {
             if (queueFollowingSongs) {
                 files = files.subList(index, files.size());
@@ -439,10 +436,7 @@ public class PlayQueueService {
     public PlayQueueInfo playSimilar(int id, int count) throws Exception {
         HttpServletRequest request = WebContextFactory.get().getHttpServletRequest();
         HttpServletResponse response = WebContextFactory.get().getHttpServletResponse();
-        MediaFile artist = mediaFileService.getMediaFile(id);
-        String username = securityService.getCurrentUsername(request);
-        List<MusicFolder> musicFolders = settingsService.getMusicFoldersForUser(username);
-        List<MediaFile> similarSongs = lastFmService.getSimilarSongs(artist, count, musicFolders);
+        List<MediaFile> similarSongs = Collections.emptyList();
         Player player = getCurrentPlayer(request, response);
         player.getPlayQueue().addFiles(false, similarSongs);
         return convert(request, player, true).setStartPlayerAt(0);
@@ -757,10 +751,6 @@ public class PlayQueueService {
 
     public void setMediaFileService(MediaFileService mediaFileService) {
         this.mediaFileService = mediaFileService;
-    }
-
-    public void setLastFmService(LastFmService lastFmService) {
-        this.lastFmService = lastFmService;
     }
 
     public void setJukeboxService(JukeboxService jukeboxService) {

@@ -84,8 +84,6 @@ public class SubsonicRESTController {
     @Autowired
     private MediaFileService mediaFileService;
     @Autowired
-    private LastFmService lastFmService;
-    @Autowired
     private MusicIndexService musicIndexService;
     @Autowired
     private TranscodingService transcodingService;
@@ -336,10 +334,8 @@ public class SubsonicRESTController {
     @RequestMapping(value = "/getSimilarSongs")
     public void getSimilarSongs(HttpServletRequest request, HttpServletResponse response) throws Exception {
         request = wrapRequest(request);
-        String username = securityService.getCurrentUsername(request);
 
         int id = getRequiredIntParameter(request, "id");
-        int count = getIntParameter(request, "count", 50);
 
         SimilarSongs result = new SimilarSongs();
 
@@ -347,12 +343,6 @@ public class SubsonicRESTController {
         if (mediaFile == null) {
             error(request, response, ErrorCode.NOT_FOUND, "Media file not found.");
             return;
-        }
-        List<org.airsonic.player.domain.MusicFolder> musicFolders = settingsService.getMusicFoldersForUser(username);
-        List<MediaFile> similarSongs = lastFmService.getSimilarSongs(mediaFile, count, musicFolders);
-        Player player = playerService.getPlayer(request, response);
-        for (MediaFile similarSong : similarSongs) {
-            result.getSong().add(createJaxbChild(player, similarSong, username));
         }
 
         Response res = createResponse();
@@ -376,13 +366,6 @@ public class SubsonicRESTController {
             return;
         }
 
-        List<org.airsonic.player.domain.MusicFolder> musicFolders = settingsService.getMusicFoldersForUser(username);
-        List<MediaFile> similarSongs = lastFmService.getSimilarSongs(artist, count, musicFolders);
-        Player player = playerService.getPlayer(request, response);
-        for (MediaFile similarSong : similarSongs) {
-            result.getSong().add(createJaxbChild(player, similarSong, username));
-        }
-
         Response res = createResponse();
         res.setSimilarSongs2(result);
         jaxbWriter.writeResponse(request, response, res);
@@ -391,19 +374,8 @@ public class SubsonicRESTController {
     @RequestMapping(value = "/getTopSongs")
     public void getTopSongs(HttpServletRequest request, HttpServletResponse response) throws Exception {
         request = wrapRequest(request);
-        String username = securityService.getCurrentUsername(request);
-
-        String artist = getRequiredStringParameter(request, "artist");
-        int count = getIntParameter(request, "count", 50);
 
         TopSongs result = new TopSongs();
-
-        List<org.airsonic.player.domain.MusicFolder> musicFolders = settingsService.getMusicFoldersForUser(username);
-        List<MediaFile> topSongs = lastFmService.getTopSongs(artist, count, musicFolders);
-        Player player = playerService.getPlayer(request, response);
-        for (MediaFile topSong : topSongs) {
-            result.getSong().add(createJaxbChild(player, topSong, username));
-        }
 
         Response res = createResponse();
         res.setTopSongs(result);
@@ -413,11 +385,8 @@ public class SubsonicRESTController {
     @RequestMapping(value = "/getArtistInfo")
     public void getArtistInfo(HttpServletRequest request, HttpServletResponse response) throws Exception {
         request = wrapRequest(request);
-        String username = securityService.getCurrentUsername(request);
 
         int id = getRequiredIntParameter(request, "id");
-        int count = getIntParameter(request, "count", 20);
-        boolean includeNotPresent = ServletRequestUtils.getBooleanParameter(request, "includeNotPresent", false);
 
         ArtistInfo result = new ArtistInfo();
 
@@ -425,20 +394,6 @@ public class SubsonicRESTController {
         if (mediaFile == null) {
             error(request, response, ErrorCode.NOT_FOUND, "Media file not found.");
             return;
-        }
-        List<org.airsonic.player.domain.MusicFolder> musicFolders = settingsService.getMusicFoldersForUser(username);
-        List<MediaFile> similarArtists = lastFmService.getSimilarArtists(mediaFile, count, includeNotPresent, musicFolders);
-        for (MediaFile similarArtist : similarArtists) {
-            result.getSimilarArtist().add(createJaxbArtist(similarArtist, username));
-        }
-        ArtistBio artistBio = lastFmService.getArtistBio(mediaFile, getUserLocale(request));
-        if (artistBio != null) {
-            result.setBiography(artistBio.getBiography());
-            result.setMusicBrainzId(artistBio.getMusicBrainzId());
-            result.setLastFmUrl(artistBio.getLastFmUrl());
-            result.setSmallImageUrl(artistBio.getSmallImageUrl());
-            result.setMediumImageUrl(artistBio.getMediumImageUrl());
-            result.setLargeImageUrl(artistBio.getLargeImageUrl());
         }
 
         Response res = createResponse();
@@ -449,11 +404,7 @@ public class SubsonicRESTController {
     @RequestMapping(value = "/getArtistInfo2")
     public void getArtistInfo2(HttpServletRequest request, HttpServletResponse response) throws Exception {
         request = wrapRequest(request);
-        String username = securityService.getCurrentUsername(request);
-
         int id = getRequiredIntParameter(request, "id");
-        int count = getIntParameter(request, "count", 20);
-        boolean includeNotPresent = ServletRequestUtils.getBooleanParameter(request, "includeNotPresent", false);
 
         ArtistInfo2 result = new ArtistInfo2();
 
@@ -461,21 +412,6 @@ public class SubsonicRESTController {
         if (artist == null) {
             error(request, response, ErrorCode.NOT_FOUND, "Artist not found.");
             return;
-        }
-
-        List<org.airsonic.player.domain.MusicFolder> musicFolders = settingsService.getMusicFoldersForUser(username);
-        List<org.airsonic.player.domain.Artist> similarArtists = lastFmService.getSimilarArtists(artist, count, includeNotPresent, musicFolders);
-        for (org.airsonic.player.domain.Artist similarArtist : similarArtists) {
-            result.getSimilarArtist().add(createJaxbArtist(new ArtistID3(), similarArtist, username));
-        }
-        ArtistBio artistBio = lastFmService.getArtistBio(artist, getUserLocale(request));
-        if (artistBio != null) {
-            result.setBiography(artistBio.getBiography());
-            result.setMusicBrainzId(artistBio.getMusicBrainzId());
-            result.setLastFmUrl(artistBio.getLastFmUrl());
-            result.setSmallImageUrl(artistBio.getSmallImageUrl());
-            result.setMediumImageUrl(artistBio.getMediumImageUrl());
-            result.setLargeImageUrl(artistBio.getLargeImageUrl());
         }
 
         Response res = createResponse();
@@ -2256,11 +2192,8 @@ public class SubsonicRESTController {
             error(request, response, SubsonicRESTController.ErrorCode.NOT_FOUND, "Media file not found.");
             return;
         }
-        AlbumNotes albumNotes = this.lastFmService.getAlbumNotes(mediaFile);
 
-        AlbumInfo result = getAlbumInfoInternal(albumNotes);
         Response res = createResponse();
-        res.setAlbumInfo(result);
         this.jaxbWriter.writeResponse(request, response, res);
     }
 
@@ -2275,26 +2208,9 @@ public class SubsonicRESTController {
             error(request, response, SubsonicRESTController.ErrorCode.NOT_FOUND, "Album not found.");
             return;
         }
-        AlbumNotes albumNotes = this.lastFmService.getAlbumNotes(album);
 
-        AlbumInfo result = getAlbumInfoInternal(albumNotes);
         Response res = createResponse();
-        res.setAlbumInfo(result);
         this.jaxbWriter.writeResponse(request, response, res);
-    }
-
-    private AlbumInfo getAlbumInfoInternal(AlbumNotes albumNotes) {
-        AlbumInfo result = new AlbumInfo();
-        if (albumNotes != null)
-        {
-            result.setNotes(albumNotes.getNotes());
-            result.setMusicBrainzId(albumNotes.getMusicBrainzId());
-            result.setLastFmUrl(albumNotes.getLastFmUrl());
-            result.setSmallImageUrl(albumNotes.getSmallImageUrl());
-            result.setMediumImageUrl(albumNotes.getMediumImageUrl());
-            result.setLargeImageUrl(albumNotes.getLargeImageUrl());
-        }
-        return result;
     }
 
     @RequestMapping(value = "/getVideoInfo")
