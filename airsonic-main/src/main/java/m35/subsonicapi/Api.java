@@ -1,0 +1,844 @@
+
+package m35.subsonicapi;
+
+import java.awt.image.BufferedImage;
+import java.util.List;
+import org.subsonic.restapi.*;
+
+public class Api {
+
+    /*
+    Used to test connectivity with the server. Takes no extra parameters.
+    Returns an empty <subsonic-response> element on success.
+    */
+    public void ping() {
+    }
+
+    /*
+    Get details about the software license. Takes no extra parameters. Please note that access to the REST API requires that the server has a valid license (after a 30-day trial period). To get a license key you must upgrade to Subsonic Premium.
+    Returns a <subsonic-response> element with a nested <license> element on success.     
+    */
+    public License getLicense() {
+    }
+
+    /*
+    Returns all configured top-level music folders. Takes no extra parameters.
+    Returns a <subsonic-response> element with a nested <musicFolders> element on success.
+    */
+    public MusicFolders getMusicFolders() {
+    }
+
+    /*
+    Returns an indexed structure of all artists. 
+    Returns a <subsonic-response> element with a nested <indexes> element on success.
+    */
+    public Indexes getIndexes(
+            Object musicFolderId,   // If specified, only return artists in the music folder with the given ID. See getMusicFolders. 
+            Object ifModifiedSince  // [default:null] If specified, only return a result if the artist collection has changed since the given time (in milliseconds since 1 Jan 1970). 
+    ) {
+    }
+
+    /*
+    Returns a listing of all files in a music directory. Typically used to get list of albums for an artist, or list of songs for an album. 
+    Returns a <subsonic-response> element with a nested <directory> element on success.
+    */
+    public Directory getMusicDirectory(
+            String id   // A string which uniquely identifies the music folder. Obtained by calls to getIndexes or getMusicDirectory. 
+    ) {
+    }
+
+    /*
+    Returns all genres.
+    Returns a <subsonic-response> element with a nested <genres> element on success.
+    */
+    public Genres getGenres() {
+    }
+
+    /*
+    Similar to getIndexes, but organizes music according to ID3 tags. 
+    Returns a <subsonic-response> element with a nested <artists> element on success.
+    */
+    public Artists getArtists(
+            Object musicFolderId    // [default:null] If specified, only return artists in the music folder with the given ID. See getMusicFolders. 
+    ) {
+    }
+
+    /*
+    Returns details for an artist, including a list of albums. This method organizes music according to ID3 tags. 
+    Returns a <subsonic-response> element with a nested <artist> element on success.
+    */
+    public Artist getArtist(
+            Object id       // The artist ID.
+    ) {
+    }
+
+    /*
+    Returns details for an album, including a list of songs. This method organizes music according to ID3 tags. 
+    urns a <subsonic-response> element with a nested <album> element on success.
+    */
+    public Album getAlbum(
+            Object id   // The album ID.
+    ) {
+    }
+    
+    /*
+    Returns details for a song. 
+    Returns a <subsonic-response> element with a nested <song> element on success.
+    */
+    public Song getSong(
+            Object id   // The song ID.
+    ) {
+    }
+
+    /*
+    Returns all video files. 
+    Returns a <subsonic-response> element with a nested <videos> element on success.
+    */
+    public Videos getVideos() {
+    }
+
+    /*
+    Returns details for a video, including information about available audio tracks, subtitles (captions) and conversions. 
+    Returns a <subsonic-response> element with a nested <videoInfo> element on success.
+    */
+    public VideoInfo getVideoInfo(
+            Object id // The video ID.
+    ) {
+    }
+    
+    /*
+    Returns artist info with biography, image URLs and similar artists, using data from last.fm.
+    Returns a <subsonic-response> element with a nested <artistInfo> element on success.
+    */
+    public ArtistInfo getArtistInfo(
+            Object id,  // The artist, album or song ID.
+            Integer count,   // [default:20]   Max number of similar artists to return.
+            Boolean includeNotPresent    // [default:false] Whether to return artists that are not present in the media library.
+    ) {
+        
+    }
+    
+    /*
+    Similar to getArtistInfo, but organizes music according to ID3 tags. 
+    Returns a <subsonic-response> element with a nested <artistInfo2> element on success.
+    */
+    public ArtistInfo2 getArtistInfo2(
+        Object id,  // The artist ID.
+        Integer count, // [default:20] Max number of similar artists to return.
+        Boolean includeNotPresent // [default:false]   Whether to return artists that are not present in the media library.        
+    ) {
+    }
+    
+    /*
+    Returns album notes, image URLs etc, using data from last.fm. 
+    Returns a <subsonic-response> element with a nested <albumInfo> element on success.
+    */
+    public AlbumInfo getAlbumInfo(
+            Object id // The album or song ID.
+    ) {
+    }
+
+    /*
+    Similar to getAlbumInfo, but organizes music according to ID3 tags. 
+    Returns a <subsonic-response> element with a nested <albumInfo> element on success.
+    */
+    public AlbumInfo getAlbumInfo2(
+            Object id // The album ID.
+    ) {
+    }
+    
+    
+    /*
+    Returns a random collection of songs from the given artist and similar artists, using data from last.fm. Typically used for artist radio features.
+    Returns a <subsonic-response> element with a nested <similarSongs> element on success.
+    */
+    public SimilarSongs getSimilarSongs(
+            Object id, // The artist, album or song ID.
+            Integer count // [default:50] Max number of songs to return.
+    ) {
+    }
+
+    /*
+    Similar to getSimilarSongs, but organizes music according to ID3 tags. 
+    Returns a <subsonic-response> element with a nested <similarSongs2> element on success.
+    */
+    public SimilarSongs2 getSimilarSongs2(
+            Object id, // The artist ID.
+            Integer count // [default:50]  Max number of songs to return.
+    ) {
+    }
+    
+    /*
+    Returns top songs for the given artist, using data from last.fm. 
+    Returns a <subsonic-response> element with a nested <topSongs> element on success.
+    */
+    public TopSongs getTopSongs(
+            Object artist,  // The artist name
+            Integer count  // [default:50]  Max number of songs to return.
+    ) {
+    }
+    
+    
+    /*
+    Returns a list of random, newest, highest rated etc. albums. Similar to the album lists on the home page of the Subsonic web interface. 
+    Returns a <subsonic-response> element with a nested <albumList> element on success.
+    */
+    public AlbumList getAlbumList(
+        String type, //  The list type. Must be one of the following: random, newest, highest, frequent, recent. Since 1.8.0 you can also use alphabeticalByName or alphabeticalByArtist to page through all albums alphabetically, and starred to retrieve starred albums. Since 1.10.1 you can use byYear and byGenre to list albums in a given year range or genre.
+        Integer size, // [default:10] The number of albums to return. Max 500.
+        Integer offset, // [default:0] The list offset. Useful if you for example want to page through the list of newest albums.
+        Integer fromYear, // [req if type=year] The first year in the range. If fromYear > toYear a reverse chronological list is returned.
+        Integer toYear, // [req if type=year] The last year in the range.
+        String genre, // [req if type=genre] The name of the genre, e.g., "Rock".
+        Object musicFolderId // [opt] (Since 1.11.0) Only return albums in the music folder with the given ID. See getMusicFolders.
+            
+    ) {
+    }
+
+    /*
+    Similar to getAlbumList, but organizes music according to ID3 tags. 
+    Returns a <subsonic-response> element with a nested <albumList2> element on success.
+    */
+    public AlbumList2 getAlbumList2(
+        String type, //  The list type. Must be one of the following: random, newest, frequent, recent, starred, alphabeticalByName or alphabeticalByArtist. Since 1.10.1 you can use byYear and byGenre to list albums in a given year range or genre.
+        Integer size, // [default:10] The number of albums to return. Max 500.
+        Integer offset, // [default:0] The list offset. Useful if you for example want to page through the list of newest albums.
+        Integer fromYear, // [req if type=year] The first year in the range. If fromYear > toYear a reverse chronological list is returned.
+        Integer toYear, // [req if type=year] The last year in the range.
+        String genre, // [req if type=genre] The name of the genre, e.g., "Rock".
+        Object musicFolderId // [opt] (Since 1.12.0) Only return albums in the music folder with the given ID. See getMusicFolders.
+    ) {
+    }
+
+    /*
+    Returns random songs matching the given criteria. 
+    Returns a <subsonic-response> element with a nested <randomSongs> element on success.
+    */
+    public RandomSongs getRandomSongs(
+        Integer size, // [default:10] The maximum number of songs to return. Max 500.
+        String genre, // [opt] Only returns songs belonging to this genre.
+        Integer fromYear, // [opt] Only return songs published after or in this year.
+        Integer toYear, // [opt] Only return songs published before or in this year.
+        Object musicFolderId // [opt] Only return songs in the music folder with the given ID. See getMusicFolders.
+    ) {
+    }
+
+    /*
+    Returns songs in a given genre. 
+    Returns a <subsonic-response> element with a nested <songsByGenre> element on success.
+    */
+    public SongsByGenre getSongsByGenre(
+        Object genre, //  The genre, as returned by getGenres.
+        Integer count, // [default:10] The maximum number of songs to return. Max 500.
+        Integer offset, // [default:0] The offset. Useful if you want to page through the songs in a genre.
+        Object musicFolderId // [opt] (Since 1.12.0) Only return albums in the music folder with the given ID. See getMusicFolders.
+    ) {
+    }
+
+    /*
+    Returns what is currently being played by all users. Takes no extra parameters. 
+    Returns a <subsonic-response> element with a nested <nowPlaying> element on success.
+    */
+    public NowPlaying getNowPlaying() {
+    }
+
+    /*
+    Returns starred songs, albums and artists. 
+    Returns a <subsonic-response> element with a nested <starred> element on success.
+    */
+    public Starred getStarred(
+            Object musicFolderId // [opt] (Since 1.12.0) Only return results from the music folder with the given ID. See getMusicFolders.
+    ) {
+    }
+
+    /*
+    Similar to getStarred, but organizes music according to ID3 tags. 
+    */
+    public Starred getStarred2(
+            Object musicFolderId // [opt] (Since 1.12.0) Only return results from the music folder with the given ID. See getMusicFolders.
+    ) {
+    }
+
+
+    /*
+    Deprecated since 1.4.0, use search2 instead.
+    Returns a listing of files matching the given search criteria. Supports paging through the result. 
+    Returns a <subsonic-response> element with a nested <searchResult> element on success.
+    */
+    @Deprecated
+    public SearchResult search(
+        String artist, // [opt] Artist to search for.
+        String album, // [opt] Album to searh for.
+        String title, // [opt] Song title to search for.
+        Object any, // [opt] Searches all fields.
+        Integer count, // [default:20] Maximum number of results to return.
+        Integer offset, // [default:0] Search result offset. Used for paging.
+        Long newerThan // [opt] Only return matches that are newer than this. Given as milliseconds since 1970.
+    ) {
+    }
+
+    /*
+    Returns albums, artists and songs matching the given search criteria. Supports paging through the result. 
+    Returns a <subsonic-response> element with a nested <searchResult2> element on success.
+    */
+    public SearchResult2 search2(
+        String query, //  Search query.
+        Integer artistCount, // [default:20] Maximum number of artists to return.
+        Integer artistOffset, // [default:0] Search result offset for artists. Used for paging.
+        Integer albumCount, // [default:20] Maximum number of albums to return.
+        Integer albumOffset, // [default:0] Search result offset for albums. Used for paging.
+        Integer songCount, // [default:20] Maximum number of songs to return.
+        Integer songOffset, // [default:0] Search result offset for songs. Used for paging.
+        Object musicFolderId // [opt] (Since 1.12.0) Only return results from the music folder with the given ID. See getMusicFolders.
+    ) {
+    }
+
+    /*
+    Similar to search2, but organizes music according to ID3 tags. 
+    Returns a <subsonic-response> element with a nested <searchResult3> element on success.
+    */
+    public SearchResult3 search3(
+        String query, //  Search query.
+        Integer artistCount, // [default:20] Maximum number of artists to return.
+        Integer artistOffset, // [default:0] Search result offset for artists. Used for paging.
+        Integer albumCount, // [default:20] Maximum number of albums to return.
+        Integer albumOffset, // [default:0] Search result offset for albums. Used for paging.
+        Integer songCount, // [default:20] Maximum number of songs to return.
+        Integer songOffset, // [default:0] Search result offset for songs. Used for paging.
+        Object musicFolderId // [opt] (Since 1.12.0) Only return results from music folder with the given ID. See getMusicFolders.
+    ) {
+    }
+
+    /*
+    Returns all playlists a user is allowed to play. 
+    Returns a <subsonic-response> element with a nested <playlists> element on success.
+    */
+    public Playlists getPlaylists(
+            String username // [opt] (Since 1.8.0) If specified, return playlists for this user rather than for the authenticated user. The authenticated user must have admin role if this parameter is used. 
+    ) {
+    }
+
+    /*
+    Returns a listing of files in a saved playlist. 
+    Returns a <subsonic-response> element with a nested <playlist> element on success.
+    */
+    public Playlist getPlaylist(
+            Object id //   ID of the playlist to return, as obtained by getPlaylists.
+    ) {
+    }
+
+    /*
+    Creates (or updates) a playlist. 
+    Since 1.14.0 the newly created/updated playlist is returned. In earlier versions an empty <subsonic-response> element is returned. 
+    */
+    public Playlist createPlaylist(
+        Object playlistId, // [req if updating] The playlist ID.
+        String name, // [req if updating] The human-readable name of the playlist.
+        Object songId // [opt] ID of a song in the playlist. Use one songId parameter for each song in the playlist.
+    ) {
+    }
+
+
+    /*
+    Updates a playlist. Only the owner of a playlist is allowed to update it. 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void updatePlaylist(
+        Object playlistId, //  The playlist ID.
+        String name, // [opt] The human-readable name of the playlist.
+        String comment, // [opt] The playlist comment.
+        Boolean public_, // [default:false?] true if the playlist should be visible to all users, false otherwise.
+        List songIdToAdd, // [opt] Add this song with this ID to the playlist. Multiple parameters allowed.
+        List songIndexToRemove // [opt] Remove the song at this position in the playlist. Multiple parameters allowed.
+    ) {
+    }
+
+    
+    /*
+    http://your-server/rest/deletePlaylist Since 1.2.0 
+    Deletes a saved playlist. 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void deletePlaylist(
+            Object id //  ID of the playlist to delete, as obtained by getPlaylists.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/stream Since 1.0.0 
+    Streams a given media file. 
+    Returns binary data on success, or an XML document on error (in which case the HTTP content type will start with "text/xml"). 
+    */
+    public byte[] stream(
+            Object id, //  A string which uniquely identifies the file to stream. Obtained by calls to getMusicDirectory.
+            Object maxBitRate, // [opt] (Since 1.2.0) If specified, the server will attempt to limit the bitrate to this value, in kilobits per second. If set to zero, no limit is imposed. 
+            Object format, // [opt] (Since 1.6.0) Specifies the preferred target format (e.g., "mp3" or "flv") in case there are multiple applicable transcodings. Starting with 1.9.0 you can use the special value "raw" to disable transcoding. 
+            Object timeOffset, // [opt] Only applicable to video streaming. If specified, start streaming at the given offset (in seconds) into the video. Typically used to implement video skipping. 
+            Object size, // [opt] (Since 1.6.0) Only applicable to video streaming. Requested video size specified as WxH, for instance "640x480". 
+            Object estimateContentLength, // [default:false] (Since 1.8.0). If set to "true", the Content-Length HTTP header will be set to an estimated value for transcoded or downsampled media. 
+            Boolean converted // [default:false] (Since 1.14.0) Only applicable to video streaming. Subsonic can optimize videos for streaming by converting them to MP4. If a conversion exists for the video in question, then setting this parameter to "true" will cause the converted video to be returned instead of the original. 
+    ) {
+    }
+
+    /*
+    http://your-server/rest/download Since 1.0.0 
+    Downloads a given media file. Similar to stream, but this method returns the original media data without transcoding or downsampling. 
+    Returns binary data on success, or an XML document on error (in which case the HTTP content type will start with "text/xml"). 
+    */
+    public byte[] download(
+            Object id //  A string which uniquely identifies the file to download. Obtained by calls to getMusicDirectory.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/hls.m3u8 Since 1.8.0 
+    Creates an HLS (HTTP Live Streaming) playlist used for streaming video or audio. HLS is a streaming protocol implemented by Apple and works by breaking the overall stream into a sequence of small HTTP-based file downloads. It's supported by iOS and newer versions of Android. This method also supports adaptive bitrate streaming, see the bitRate parameter. 
+    Returns an M3U8 playlist on success (content type "application/vnd.apple.mpegurl"), or an XML document on error (in which case the HTTP content type will start with "text/xml"). 
+    */
+    public void hls(
+            Object id, //  A string which uniquely identifies the media file to stream.
+            Object bitrate, // [opt] If specified, the server will attempt to limit the bitrate to this value, in kilobits per second. If this parameter is specified more than once, the server will create a variant playlist, suitable for adaptive bitrate streaming. The playlist will support streaming at all the specified bitrates. The server will automatically choose video dimensions that are suitable for the given bitrates. Since 1.9.0 you may explicitly request a certain width (480) and height (360) like so: bitRate=1000@480x360 
+            Object audioTrack // [opt] The ID of the audio track to use. See getVideoInfo for how to get the list of available audio tracks for a video. 
+    ) {
+    }
+
+    /*
+    http://your-server/rest/getCaptions Since 1.14.0 
+    Returns captions (subtitles) for a video. Use getVideoInfo to get a list of available captions. 
+    Returns the raw video captions. 
+    */
+    public void getCaptions(
+            Object id, //  The ID of the video.
+            String format // [opt] Preferred captions format ("srt" or "vtt").
+    ) {
+    }
+
+    /*
+    http://your-server/rest/getCoverArt Since 1.0.0 
+    Returns a cover art image. 
+    Returns the cover art image in binary form. 
+    */
+    public BufferedImage getCoverArt(
+            Object id, //  The ID of a song, album or artist.
+            Object size // [opt] If specified, scale image to this size.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/getLyrics Since 1.2.0 
+    Searches for and returns lyrics for a given song. 
+    Returns a <subsonic-response> element with a nested <lyrics> element on success. The <lyrics> element is empty if no matching lyrics was found. Example. 
+    */
+    public Lyrics getLyrics(
+            Object artist, // [opt] The artist name.
+            Object title // [opt] The song title.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/getAvatar Since 1.8.0 
+    Returns the avatar (personal image) for a user. 
+    Returns the avatar image in binary form. 
+    */
+    public BufferedImage getAvatar(
+            String username //  The user in question.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/star Since 1.8.0 
+    Attaches a star to a song, album or artist. 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void star(
+            Object id, // [opt] The ID of the file (song) or folder (album/artist) to star. Multiple parameters allowed.
+            Object albumId, // [opt] The ID of an album to star. Use this rather than id if the client accesses the media collection according to ID3 tags rather than file structure. Multiple parameters allowed. 
+            Object artistId // [opt] The ID of an artist to star. Use this rather than id if the client accesses the media collection according to ID3 tags rather than file structure. Multiple parameters allowed. 
+    ) {
+    }
+
+    /*
+    http://your-server/rest/unstar Since 1.8.0 
+    Removes the star from a song, album or artist. 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void unstar(
+            Object id, // [opt] The ID of the file (song) or folder (album/artist) to unstar. Multiple parameters allowed.
+            Object albumId, // [opt] The ID of an album to unstar. Use this rather than id if the client accesses the media collection according to ID3 tags rather than file structure. Multiple parameters allowed. 
+            Object artistId // [opt] The ID of an artist to unstar. Use this rather than id if the client accesses the media collection according to ID3 tags rather than file structure. Multiple parameters allowed. 
+    ) {
+    }
+
+    /*
+    http://your-server/rest/setRating Since 1.6.0 
+    Sets the rating for a music file. 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void setRating(
+            Object id, //  A string which uniquely identifies the file (song) or folder (album/artist) to rate.
+            int rating //  The rating between 1 and 5 (inclusive), or 0 to remove the rating.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/scrobble Since 1.5.0 
+    Registers the local playback of one or more media files. Typically used when playing media that is cached on the client. This operation includes the following: 
+    ? "Scrobbles" the media files on last.fm if the user has configured his/her last.fm credentials on the Subsonic server (Settings > Personal). 
+    ? Updates the play count and last played timestamp for the media files. (Since 1.11.0) 
+    ? Makes the media files appear in the "Now playing" page in the web app, and appear in the list of songs returned by getNowPlaying (Since 1.11.0)
+    Since 1.8.0 you may specify multiple id (and optionally time) parameters to scrobble multiple files. 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void scrobble(
+            Object id, //  A string which uniquely identifies the file to scrobble.
+            Long time, // [opt] (Since 1.8.0) The time (in milliseconds since 1 Jan 1970) at which the song was listened to. 
+            Boolean submission // [default:true] Whether this is a "submission" or a "now playing" notification.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/getShares Since 1.6.0 
+    Returns information about shared media this user is allowed to manage. Takes no extra parameters. 
+    Returns a <subsonic-response> element with a nested <shares> element on success. Example. 
+    */
+    public Shares getShares() {
+    }
+
+    /*
+    http://your-server/rest/createShare Since 1.6.0 
+    Creates a public URL that can be used by anyone to stream music or video from the Subsonic server. The URL is short and suitable for posting on Facebook, Twitter etc. Note: The user must be authorized to share (see Settings > Users > User is allowed to share files with anyone). 
+    Returns a <subsonic-response> element with a nested <shares> element on success, which in turns contains a single <share> element for the newly created share. Example. 
+    */
+    public Share createShare(
+            Object id, //  ID of a song, album or video to share. Use one id parameter for each entry to share.
+            String description, // [opt] A user-defined description that will be displayed to people visiting the shared media.
+            Long expires // [opt] The time at which the share expires. Given as milliseconds since 1970.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/updateShare Since 1.6.0 
+    Updates the description and/or expiration date for an existing share. 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void updateShare(
+            Object id, //  ID of the share to update.
+            String description, // [opt] A user-defined description that will be displayed to people visiting the shared media.
+            Long expires // [opt] The time at which the share expires. Given as milliseconds since 1970, or zero to remove the expiration. 
+    ) {
+    }
+
+    /*
+    http://your-server/rest/deleteShare Since 1.6.0 
+    Deletes an existing share. 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void deleteShare(
+            Object id //  ID of the share to delete.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/getPodcasts Since 1.6.0 
+    Returns all Podcast channels the server subscribes to, and (optionally) their episodes. This method can also be used to return details for only one channel - refer to the id parameter. A typical use case for this method would be to first retrieve all channels without episodes, and then retrieve all episodes for the single channel the user selects. 
+    Returns a <subsonic-response> element with a nested <podcasts> element on success. Example. 
+    */
+    public Podcasts getPodcasts(
+            Object includeEpisodes, // [default:true] (Since 1.9.0) Whether to include Podcast episodes in the returned result.
+            Object id // [opt] (Since 1.9.0) If specified, only return the Podcast channel with this ID.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/getNewestPodcasts Since 1.13.0 
+    Returns the most recently published Podcast episodes. 
+    Returns a <subsonic-response> element with a nested <newestPodcasts> element on success. Example. 
+    */
+    public NewestPodcasts getNewestPodcasts(
+            Integer count // [default:20] The maximum number of episodes to return.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/refreshPodcasts Since 1.9.0 
+    Requests the server to check for new Podcast episodes. Note: The user must be authorized for Podcast administration (see Settings > Users > User is allowed to administrate Podcasts). 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void refreshPodcasts() {
+    }
+
+    /*
+    http://your-server/rest/createPodcastChannel Since 1.9.0 
+    Adds a new Podcast channel. Note: The user must be authorized for Podcast administration (see Settings > Users > User is allowed to administrate Podcasts). 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void createPodcastChannel(
+            String url //  The URL of the Podcast to add.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/deletePodcastChannel Since 1.9.0 
+    Deletes a Podcast channel. Note: The user must be authorized for Podcast administration (see Settings > Users > User is allowed to administrate Podcasts). 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void deletePodcastChannel(
+            Object id //  The ID of the Podcast channel to delete.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/deletePodcastEpisode Since 1.9.0 
+    Deletes a Podcast episode. Note: The user must be authorized for Podcast administration (see Settings > Users > User is allowed to administrate Podcasts). 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void deletePodcastEpisode(
+            Object id //  The ID of the Podcast episode to delete.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/downloadPodcastEpisode Since 1.9.0 
+    Request the server to start downloading a given Podcast episode. Note: The user must be authorized for Podcast administration (see Settings > Users > User is allowed to administrate Podcasts). 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void downloadPodcastEpisode(
+            Object id //  The ID of the Podcast episode to download.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/jukeboxControl Since 1.2.0 
+    Controls the jukebox, i.e., playback directly on the server's audio hardware. Note: The user must be authorized to control the jukebox (see Settings > Users > User is allowed to play files in jukebox mode). 
+    Returns a <jukeboxStatus> element on success, unless the get action is used, in which case a nested <jukeboxPlaylist> element is returned. Example 1. Example 2. 
+    */
+    public JukeboxStatus jukeboxControl(
+            String action, //  The operation to perform. Must be one of: get, status (since 1.7.0), set (since 1.7.0), start, stop, skip, add, clear, remove, shuffle, setGain 
+            Integer index, // [opt] Used by skip and remove. Zero-based index of the song to skip to or remove. 
+            Object offset, // [opt] (Since 1.7.0) Used by skip. Start playing this many seconds into the track. 
+            Object id, // [opt] Used by add and set. ID of song to add to the jukebox playlist. Use multiple id parameters to add many songs in the same request. (set is similar to a clear followed by a add, but will not change the currently playing track.) 
+            Float gain // [opt] Used by setGain to control the playback volume. A float value between 0.0 and 1.0.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/getInternetRadioStations Since 1.9.0 
+    Returns all internet radio stations. Takes no extra parameters. 
+    Returns a <subsonic-response> element with a nested <internetRadioStations> element on success. Example. 
+    */
+    public InternetRadioStations getInternetRadioStations() {
+    }
+
+    /*
+    http://your-server/rest/createInternetRadioStation Since 1.16.0 
+    Adds a new internet radio station. Only users with admin privileges are allowed to call this method. 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void createInternetRadioStation(
+            String streamUrl, //  The stream URL for the station.
+            String name, //  The user-defined name for the station.
+            String homepageUrl // [opt] The home page URL for the station.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/updateInternetRadioStation Since 1.16.0 
+    Updates an existing internet radio station. Only users with admin privileges are allowed to call this method. 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void updateInternetRadioStation(
+            Object id, //  The ID for the station.
+            String streamUrl, //  The stream URL for the station.
+            String name, //  The user-defined name for the station.
+            String homepageUrl // [opt] The home page URL for the station.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/deleteInternetRadioStation Since 1.16.0 
+    Deletes an existing internet radio station. Only users with admin privileges are allowed to call this method. 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void deleteInternetRadioStation(
+            Object id //  The ID for the station.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/getChatMessages Since 1.2.0 
+    Returns the current visible (non-expired) chat messages. 
+    Returns a <subsonic-response> element with a nested <chatMessages> element on success. Example. 
+    */
+    public ChatMessages getChatMessages(
+            String since // [opt] Only return messages newer than this time (in millis since Jan 1 1970).
+    ) {
+    }
+
+    /*
+    http://your-server/rest/addChatMessage Since 1.2.0 
+    Adds a message to the chat log. 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void addChatMessage(
+            String message //  The chat message.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/getUser Since 1.3.0 
+    Get details about a given user, including which authorization roles and folder access it has. Can be used to enable/disable certain features in the client, such as jukebox control. 
+    Returns a <subsonic-response> element with a nested <user> element on success. Example. 
+    */
+    public User getUser(
+            Object username //  The name of the user to retrieve. You can only retrieve your own user unless you have admin privileges. 
+    ) {
+    }
+
+    /*
+    http://your-server/rest/getUsers Since 1.8.0 
+    Get details about all users, including which authorization roles and folder access they have. Only users with admin privileges are allowed to call this method. 
+    Returns a <subsonic-response> element with a nested <users> element on success. Example. 
+    */
+    public Users getUsers() {
+    }
+
+    /*
+    http://your-server/rest/createUser Since 1.1.0 
+    Creates a new Subsonic user, using the following parameters: 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void createUser(
+            Object username, //  The name of the new user.
+            String password, //  The password of the new user, either in clear text of hex-encoded (see above).
+            String email, //  The email address of the new user.
+            Object ldapAuthenticated, // [default:false] Whether the user is authenicated in LDAP.
+            Boolean adminRole, // [default:false] Whether the user is administrator.
+            Boolean settingsRole, // [default:true] Whether the user is allowed to change personal settings and password.
+            Boolean streamRole, // [default:true] Whether the user is allowed to play files.
+            Boolean jukeboxRole, // [default:false] Whether the user is allowed to play files in jukebox mode.
+            Boolean downloadRole, // [default:false] Whether the user is allowed to download files.
+            Boolean uploadRole, // [default:false] Whether the user is allowed to upload files.
+            Boolean playlistRole, // [default:false] Whether the user is allowed to create and delete playlists. Since 1.8.0, changing this role has no effect. 
+            Boolean coverArtRole, // [default:false] Whether the user is allowed to change cover art and tags.
+            Boolean commentRole, // [default:false] Whether the user is allowed to create and edit comments and ratings.
+            Boolean podcastRole, // [default:false] Whether the user is allowed to administrate Podcasts.
+            Boolean shareRole, // [default:false] (Since 1.8.0) Whether the user is allowed to share files with anyone.
+            Boolean videoConversionRole, // [default:false] (Since 1.15.0) Whether the user is allowed to start video conversions.
+            List musicFolderId // [opt] All folders (Since 1.12.0) IDs of the music folders the user is allowed access to. Include the parameter once for each folder.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/updateUser Since 1.10.1 
+    Modifies an existing Subsonic user, using the following parameters: 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void updateUser(
+            String username, //  The name of the user.
+            String password, // [opt] The password of the user, either in clear text of hex-encoded (see above).
+            String email, // [opt] The email address of the user.
+            Object ldapAuthenticated, // [opt] Whether the user is authenicated in LDAP.
+            Object adminRole, // [opt] Whether the user is administrator.
+            Object settingsRole, // [opt] Whether the user is allowed to change personal settings and password.
+            Object streamRole, // [opt] Whether the user is allowed to play files.
+            Object jukeboxRole, // [opt] Whether the user is allowed to play files in jukebox mode.
+            Object downloadRole, // [opt] Whether the user is allowed to download files.
+            Object uploadRole, // [opt] Whether the user is allowed to upload files.
+            Object coverArtRole, // [opt] Whether the user is allowed to change cover art and tags.
+            Object commentRole, // [opt] Whether the user is allowed to create and edit comments and ratings.
+            Object podcastRole, // [opt] Whether the user is allowed to administrate Podcasts.
+            Object shareRole, // [opt] Whether the user is allowed to share files with anyone.
+            Object videoConversionRole, // false (Since 1.15.0) Whether the user is allowed to start video conversions.
+            Object musicFolderId, // [opt] (Since 1.12.0) IDs of the music folders the user is allowed access to. Include the parameter once for each folder.
+            Object maxBitRate // [opt] (Since 1.13.0) The maximum bit rate (in Kbps) for the user. Audio streams of higher bit rates are automatically downsampled to this bit rate. Legal values: 0 (no limit), 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320. 
+    ) {
+    }
+
+    /*
+    http://your-server/rest/deleteUser Since 1.3.0 
+    Deletes an existing Subsonic user, using the following parameters: 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void deleteUser(
+            String username //  The name of the user to delete.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/changePassword Since 1.1.0 
+    Changes the password of an existing Subsonic user, using the following parameters. You can only change your own password unless you have admin privileges. 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void changePassword(
+            String username, //  The name of the user which should change its password.
+            String password //  The new password of the new user, either in clear text of hex-encoded (see above).
+    ) {
+    }
+
+    /*
+    http://your-server/rest/getBookmarks Since 1.9.0 
+    Returns all bookmarks for this user. A bookmark is a position within a certain media file. 
+    Returns a <subsonic-response> element with a nested <bookmarks> element on success. Example. 
+    */
+    public void getBookmarks() {
+    }
+
+    /*
+    http://your-server/rest/createBookmark Since 1.9.0 
+    Creates or updates a bookmark (a position within a media file). Bookmarks are personal and not visible to other users. 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void createBookmark(
+            Object id, //  ID of the media file to bookmark. If a bookmark already exists for this file it will be overwritten. 
+            Long position, //  The position (in milliseconds) within the media file.
+            String comment // [opt] A user-defined comment.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/deleteBookmark Since 1.9.0 
+    Deletes the bookmark for a given file. 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void deleteBookmark(
+            Object id //  ID of the media file for which to delete the bookmark. Other users' bookmarks are not affected.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/getPlayQueue Since 1.12.0 
+    Returns the state of the play queue for this user (as set by savePlayQueue). This includes the tracks in the play queue, the currently playing track, and the position within this track. Typically used to allow a user to move between different clients/apps while retaining the same play queue (for instance when listening to an audio book). 
+    Returns a <subsonic-response> element with a nested <playQueue> element on success, or an empty <subsonic-response> if no play queue has been saved. Example. 
+    */
+    public PlayQueue getPlayQueue() {
+    }
+
+    /*
+    http://your-server/rest/savePlayQueue Since 1.12.0 
+    Saves the state of the play queue for this user. This includes the tracks in the play queue, the currently playing track, and the position within this track. Typically used to allow a user to move between different clients/apps while retaining the same play queue (for instance when listening to an audio book). 
+    Returns an empty <subsonic-response> element on success. 
+    */
+    public void savePlayQueue(
+            Object id, //  ID of a song in the play queue. Use one id parameter for each song in the play queue.
+            Object current, // [opt] The ID of the current playing song.
+            Long position // [opt] The position in milliseconds within the currently playing song.
+    ) {
+    }
+
+    /*
+    http://your-server/rest/getScanStatus Since 1.15.0 
+    Returns the current status for media library scanning. Takes no extra parameters. 
+    Returns a <subsonic-response> element with a nested <scanStatus> element on success. Example. 
+    */
+    public ScanStatus getScanStatus() {
+    }
+
+    /*
+    http://your-server/rest/startScan Since 1.15.0 
+    Initiates a rescan of the media libraries. Takes no extra parameters. 
+    Returns a <subsonic-response> element with a nested <scanStatus> element on success. Example. 
+    */
+    public ScanStatus startScan() {
+    }
+
+}
