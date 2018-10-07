@@ -5,15 +5,12 @@ import java.io.BufferedReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.List;
+import java.util.Objects;
 import org.subsonic.restapi.*;
 
 public class Api {
 
-    private static class LoggedInUser {
-        String email;
-        
-    }
-    private LoggedInUser loggedInUser;
+
     
     /*
     Used to test connectivity with the server. Takes no extra parameters.
@@ -28,7 +25,6 @@ public class Api {
     */
     public License getLicense() {
         License license = new License();
-        license.setEmail(loggedInUser.email);
         license.setValid(true);
         return license;
     }
@@ -53,6 +49,7 @@ public class Api {
             Integer musicFolderId,   // If specified, only return artists in the music folder with the given ID. See getMusicFolders. 
             Long ifModifiedSince  // [opt] If specified, only return a result if the artist collection has changed since the given time (in milliseconds since 1 Jan 1970). 
     ) {
+        Objects.requireNonNull(musicFolderId, "musicFolderId required");
         Indexes indexes = new Indexes();
         return indexes;
     }
@@ -64,6 +61,7 @@ public class Api {
     public Directory getMusicDirectory(
             String id   // A string which uniquely identifies the music folder. Obtained by calls to getIndexes or getMusicDirectory. 
     ) {
+        Objects.requireNonNull(id, "id required");
         Directory directory = new Directory();
         return directory;
     }
@@ -83,7 +81,7 @@ public class Api {
     Returns a <subsonic-response> element with a nested <artists> element on success.
     */
     public ArtistsID3 getArtists(
-            Integer musicFolderId    // [default:null] If specified, only return artists in the music folder with the given ID. See getMusicFolders. 
+            Integer musicFolderId    // [opt] If specified, only return artists in the music folder with the given ID. See getMusicFolders. 
     ) {
         ArtistsID3 artists = new ArtistsID3();
         artists.getIndex();
@@ -97,6 +95,7 @@ public class Api {
     public Artist getArtist(
             String id       // The artist ID.
     ) {
+        Objects.requireNonNull(id, "id required");
         Artist artist = new Artist();
         return artist;
     }
@@ -108,6 +107,7 @@ public class Api {
     public AlbumWithSongsID3 getAlbum(
             String id   // The album ID.
     ) {
+        Objects.requireNonNull(id, "id required");
         AlbumWithSongsID3 album = new AlbumWithSongsID3();
         return album;
     }
@@ -119,6 +119,7 @@ public class Api {
     public Child getSong(
             String id   // The song ID.
     ) {
+        Objects.requireNonNull(id, "id required");
         Child song = new Child();
         return song;
     }
@@ -140,6 +141,7 @@ public class Api {
     public VideoInfo getVideoInfo(
             String id // The video ID.
     ) {
+        Objects.requireNonNull(id, "id required");
         VideoInfo videoInfo = new VideoInfo();
         videoInfo.getAudioTrack();
         return videoInfo;
@@ -154,6 +156,7 @@ public class Api {
             Integer count,   // [default:20]   Max number of similar artists to return.
             Boolean includeNotPresent    // [default:false] Whether to return artists that are not present in the media library.
     ) {
+        Objects.requireNonNull(id, "id required");
         ArtistInfo artistInfo = new ArtistInfo();
         artistInfo.getSimilarArtist();
         return artistInfo;
@@ -168,6 +171,7 @@ public class Api {
         Integer count, // [default:20] Max number of similar artists to return.
         Boolean includeNotPresent // [default:false]   Whether to return artists that are not present in the media library.        
     ) {
+        Objects.requireNonNull(id, "id required");
         ArtistInfo2 artistInfo = new ArtistInfo2();
         return artistInfo;
     }
@@ -179,6 +183,7 @@ public class Api {
     public AlbumInfo getAlbumInfo(
             String id // The album or song ID.
     ) {
+        Objects.requireNonNull(id, "id required");
         AlbumInfo albumInfo = new AlbumInfo();
         return albumInfo;
     }
@@ -190,6 +195,7 @@ public class Api {
     public AlbumInfo getAlbumInfo2(
             String id // The album ID.
     ) {
+        Objects.requireNonNull(id, "id required");
         AlbumInfo albumInfo = new AlbumInfo();
         return albumInfo;
     }
@@ -203,6 +209,7 @@ public class Api {
             String id, // The artist, album or song ID.
             Integer count // [default:50] Max number of songs to return.
     ) {
+        Objects.requireNonNull(id, "id required");
         SimilarSongs similarSongs = new SimilarSongs();
         return similarSongs;
     }
@@ -215,6 +222,7 @@ public class Api {
             String id, // The artist ID.
             Integer count // [default:50]  Max number of songs to return.
     ) {
+        Objects.requireNonNull(id, "id required");
         SimilarSongs2 similarSongs = new SimilarSongs2();
         return similarSongs;
     }
@@ -400,6 +408,7 @@ public class Api {
     public Playlist getPlaylist(
             String id //   ID of the playlist to return, as obtained by getPlaylists.
     ) {
+        Objects.requireNonNull(id, "id required");
         Playlist playlist = new Playlist();
         return playlist;
     }
@@ -441,6 +450,7 @@ public class Api {
     public void deletePlaylist(
             String id //  ID of the playlist to delete, as obtained by getPlaylists.
     ) {
+        Objects.requireNonNull(id, "id required");
     }
 
     /*
@@ -457,6 +467,7 @@ public class Api {
             Boolean estimateContentLength, // [default:false] (Since 1.8.0). If set to "true", the Content-Length HTTP header will be set to an estimated value for transcoded or downsampled media. 
             Boolean converted // [default:false] (Since 1.14.0) Only applicable to video streaming. Subsonic can optimize videos for streaming by converting them to MP4. If a conversion exists for the video in question, then setting this parameter to "true" will cause the converted video to be returned instead of the original. 
     ) {
+        Objects.requireNonNull(id, "id required");
         return new byte[0];
     }
 
@@ -468,6 +479,7 @@ public class Api {
     public byte[] download(
             String id //  A string which uniquely identifies the file to download. Obtained by calls to getMusicDirectory.
     ) {
+        Objects.requireNonNull(id, "id required");
         return new byte[0];
     }
 
@@ -481,6 +493,7 @@ public class Api {
             Object bitrate, // [opt] If specified, the server will attempt to limit the bitrate to this value, in kilobits per second. If this parameter is specified more than once, the server will create a variant playlist, suitable for adaptive bitrate streaming. The playlist will support streaming at all the specified bitrates. The server will automatically choose video dimensions that are suitable for the given bitrates. Since 1.9.0 you may explicitly request a certain width (480) and height (360) like so: bitRate=1000@480x360 
             String audioTrack // [opt] The ID of the audio track to use. See getVideoInfo for how to get the list of available audio tracks for a video. 
     ) {
+        Objects.requireNonNull(id, "id required");
         Reader reader = new StringReader("content");
         BufferedReader bufferedReader = new BufferedReader(reader);
         return bufferedReader;
@@ -495,6 +508,7 @@ public class Api {
             String id, //  The ID of the video.
             String format // [opt] Preferred captions format ("srt" or "vtt").
     ) {
+        Objects.requireNonNull(id, "id required");
         // what is this supposed to return?
         throw new UnsupportedOperationException();
     }
@@ -508,6 +522,7 @@ public class Api {
             String id, //  The ID of a song, album or artist.
             Integer size // [opt] If specified, scale image to this size.
     ) {
+        Objects.requireNonNull(id, "id required");
         // size = square width and height
         BufferedImage bufferedImage = new BufferedImage(128, 128, BufferedImage.TYPE_INT_RGB);
         return bufferedImage;
@@ -571,14 +586,15 @@ public class Api {
             String id, //  A string which uniquely identifies the file (song) or folder (album/artist) to rate.
             int rating //  The rating between 1 and 5 (inclusive), or 0 to remove the rating.
     ) {
+        Objects.requireNonNull(id, "id required");
     }
 
     /*
     http://your-server/rest/scrobble Since 1.5.0 
     Registers the local playback of one or more media files. Typically used when playing media that is cached on the client. This operation includes the following: 
-    ? "Scrobbles" the media files on last.fm if the user has configured his/her last.fm credentials on the Subsonic server (Settings > Personal). 
-    ? Updates the play count and last played timestamp for the media files. (Since 1.11.0) 
-    ? Makes the media files appear in the "Now playing" page in the web app, and appear in the list of songs returned by getNowPlaying (Since 1.11.0)
+    * "Scrobbles" the media files on last.fm if the user has configured his/her last.fm credentials on the Subsonic server (Settings > Personal). 
+    * Updates the play count and last played timestamp for the media files. (Since 1.11.0) 
+    * Makes the media files appear in the "Now playing" page in the web app, and appear in the list of songs returned by getNowPlaying (Since 1.11.0)
     Since 1.8.0 you may specify multiple id (and optionally time) parameters to scrobble multiple files. 
     Returns an empty <subsonic-response> element on success. 
     */
@@ -587,6 +603,7 @@ public class Api {
             Long time, // [opt] (Since 1.8.0) The time (in milliseconds since 1 Jan 1970) at which the song was listened to. 
             Boolean submission // [default:true] Whether this is a "submission" or a "now playing" notification.
     ) {
+        Objects.requireNonNull(id, "id required");
     }
 
     /*
@@ -609,6 +626,7 @@ public class Api {
             String description, // [opt] A user-defined description that will be displayed to people visiting the shared media.
             Long expires // [opt] The time at which the share expires. Given as milliseconds since 1970.
     ) {
+        Objects.requireNonNull(id, "id required");
         Share share = new Share();
         return share;
     }
@@ -623,6 +641,7 @@ public class Api {
             String description, // [opt] A user-defined description that will be displayed to people visiting the shared media.
             Long expires // [opt] The time at which the share expires. Given as milliseconds since 1970, or zero to remove the expiration. 
     ) {
+        Objects.requireNonNull(id, "id required");
     }
 
     /*
@@ -633,6 +652,7 @@ public class Api {
     public void deleteShare(
             String id //  ID of the share to delete.
     ) {
+        Objects.requireNonNull(id, "id required");
     }
 
     /*
@@ -686,6 +706,7 @@ public class Api {
     public void deletePodcastChannel(
             String id //  The ID of the Podcast channel to delete.
     ) {
+        Objects.requireNonNull(id, "id required");
     }
 
     /*
@@ -696,6 +717,7 @@ public class Api {
     public void deletePodcastEpisode(
             String id //  The ID of the Podcast episode to delete.
     ) {
+        Objects.requireNonNull(id, "id required");
     }
 
     /*
@@ -706,6 +728,7 @@ public class Api {
     public void downloadPodcastEpisode(
             String id //  The ID of the Podcast episode to download.
     ) {
+        Objects.requireNonNull(id, "id required");
     }
 
     /*
@@ -757,6 +780,7 @@ public class Api {
             String name, //  The user-defined name for the station.
             String homepageUrl // [opt] The home page URL for the station.
     ) {
+        Objects.requireNonNull(id, "id required");
     }
 
     /*
@@ -767,6 +791,7 @@ public class Api {
     public void deleteInternetRadioStation(
             String id //  The ID for the station.
     ) {
+        Objects.requireNonNull(id, "id required");
     }
 
     /*
@@ -891,7 +916,9 @@ public class Api {
     Returns all bookmarks for this user. A bookmark is a position within a certain media file. 
     Returns a <subsonic-response> element with a nested <bookmarks> element on success. 
     */
-    public void getBookmarks() {
+    public Bookmarks getBookmarks() {
+        Bookmarks bookmarks = new Bookmarks();
+        return bookmarks;
     }
 
     /*
@@ -904,6 +931,7 @@ public class Api {
             Long position, //  The position (in milliseconds) within the media file.
             String comment // [opt] A user-defined comment.
     ) {
+        Objects.requireNonNull(id, "id required");
     }
 
     /*
@@ -914,6 +942,7 @@ public class Api {
     public void deleteBookmark(
             String id //  ID of the media file for which to delete the bookmark. Other users' bookmarks are not affected.
     ) {
+        Objects.requireNonNull(id, "id required");
     }
 
     /*
@@ -936,6 +965,7 @@ public class Api {
             Object current, // [opt] The ID of the current playing song.
             Long position // [opt] The position in milliseconds within the currently playing song.
     ) {
+        Objects.requireNonNull(id, "id required");
     }
 
     /*
