@@ -2,10 +2,20 @@ package m35.subsonicapi;
 
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.imageio.ImageIO;
+import org.airsonic.player.util.StringUtil;
 import org.subsonic.restapi.*;
 
 public class Api {
@@ -51,7 +61,7 @@ public class Api {
     ) {
         Objects.requireNonNull(musicFolderId, "musicFolderId required");
         Indexes indexes = new Indexes();
-        return indexes;
+        //return indexes;
     }
 
     /*
@@ -63,7 +73,7 @@ public class Api {
     ) {
         Objects.requireNonNull(id, "id required");
         Directory directory = new Directory();
-        return directory;
+        //return directory;
     }
 
     /*
@@ -72,8 +82,8 @@ public class Api {
     */
     public Genres getGenres() {
         Genres genres = new Genres();
-        genres.getGenre();
-        return genres;
+        Genre genre = new Genre();
+        //return genres;
     }
 
     /*
@@ -84,8 +94,8 @@ public class Api {
             Integer musicFolderId    // [opt] If specified, only return artists in the music folder with the given ID. See getMusicFolders. 
     ) {
         ArtistsID3 artists = new ArtistsID3();
-        artists.getIndex();
-        return artists;
+        IndexID3 indexID3 = new IndexID3();
+        //return artists;
     }
 
     /*
@@ -97,7 +107,7 @@ public class Api {
     ) {
         Objects.requireNonNull(id, "id required");
         Artist artist = new Artist();
-        return artist;
+        //return artist;
     }
 
     /*
@@ -109,7 +119,7 @@ public class Api {
     ) {
         Objects.requireNonNull(id, "id required");
         AlbumWithSongsID3 album = new AlbumWithSongsID3();
-        return album;
+        //return album;
     }
     
     /*
@@ -121,7 +131,7 @@ public class Api {
     ) {
         Objects.requireNonNull(id, "id required");
         Child song = new Child();
-        return song;
+        //return song;
     }
 
     /*
@@ -130,7 +140,7 @@ public class Api {
     */
     public Videos getVideos() {
         Videos videos = new Videos();
-        videos.getVideo();
+        Child child = new Child();
         return videos;
     }
 
@@ -143,8 +153,7 @@ public class Api {
     ) {
         Objects.requireNonNull(id, "id required");
         VideoInfo videoInfo = new VideoInfo();
-        videoInfo.getAudioTrack();
-        return videoInfo;
+        throw new UnsupportedOperationException();
     }
     
     /*
@@ -158,8 +167,7 @@ public class Api {
     ) {
         Objects.requireNonNull(id, "id required");
         ArtistInfo artistInfo = new ArtistInfo();
-        artistInfo.getSimilarArtist();
-        return artistInfo;
+        //return artistInfo;
     }
     
     /*
@@ -173,7 +181,7 @@ public class Api {
     ) {
         Objects.requireNonNull(id, "id required");
         ArtistInfo2 artistInfo = new ArtistInfo2();
-        return artistInfo;
+        //return artistInfo;
     }
     
     /*
@@ -185,7 +193,7 @@ public class Api {
     ) {
         Objects.requireNonNull(id, "id required");
         AlbumInfo albumInfo = new AlbumInfo();
-        return albumInfo;
+        //return albumInfo;
     }
 
     /*
@@ -197,7 +205,7 @@ public class Api {
     ) {
         Objects.requireNonNull(id, "id required");
         AlbumInfo albumInfo = new AlbumInfo();
-        return albumInfo;
+        //return albumInfo;
     }
     
     
@@ -211,6 +219,7 @@ public class Api {
     ) {
         Objects.requireNonNull(id, "id required");
         SimilarSongs similarSongs = new SimilarSongs();
+        Child child = new Child();
         return similarSongs;
     }
 
@@ -224,6 +233,7 @@ public class Api {
     ) {
         Objects.requireNonNull(id, "id required");
         SimilarSongs2 similarSongs = new SimilarSongs2();
+        Child child = new Child();
         return similarSongs;
     }
     
@@ -235,8 +245,10 @@ public class Api {
             String artist,  // The artist name
             Integer count  // [default:50]  Max number of songs to return.
     ) {
+        Objects.requireNonNull(artist, "artist required");
         TopSongs topSongs = new TopSongs();
-        return topSongs;
+        Child child = new Child();
+        //return topSongs;
     }
     
     
@@ -254,8 +266,10 @@ public class Api {
         Integer musicFolderId // [opt] (Since 1.11.0) Only return albums in the music folder with the given ID. See getMusicFolders.
             
     ) {
+        Objects.requireNonNull(type, "type required");
         AlbumList albumList = new AlbumList();
-        return albumList;
+        Child child = new Child();
+        //return albumList;
     }
 
     /*
@@ -272,7 +286,8 @@ public class Api {
         Integer musicFolderId // [opt] (Since 1.12.0) Only return albums in the music folder with the given ID. See getMusicFolders.
     ) {
         AlbumList2 albumList = new AlbumList2();
-        return albumList;
+        AlbumID3 albumID3 = new AlbumID3();
+        //return albumList;
     }
 
     /*
@@ -286,8 +301,9 @@ public class Api {
         Integer toYear, // [opt] Only return songs published before or in this year.
         Integer musicFolderId // [opt] Only return songs in the music folder with the given ID. See getMusicFolders.
     ) {
-        Songs randomSongs = new Songs();
-        return randomSongs;
+        Songs songs = new Songs();
+        Child child = new Child();
+        //return songs;
     }
 
     /*
@@ -301,7 +317,8 @@ public class Api {
         Integer musicFolderId // [opt] (Since 1.12.0) Only return albums in the music folder with the given ID. See getMusicFolders.
     ) {
         Songs songs = new Songs();
-        return songs;
+        Child child = new Child();
+        //return songs;
     }
 
     /*
@@ -310,6 +327,7 @@ public class Api {
     */
     public NowPlaying getNowPlaying() {
         NowPlaying nowPlaying = new NowPlaying();
+        NowPlayingEntry nowPlayingEntry = new NowPlayingEntry();
         return nowPlaying;
     }
 
@@ -410,7 +428,8 @@ public class Api {
     ) {
         Objects.requireNonNull(id, "id required");
         Playlist playlist = new Playlist();
-        return playlist;
+        //return playlist;
+        throw new UnsupportedOperationException();
     }
 
     /*
@@ -458,7 +477,7 @@ public class Api {
     Streams a given media file. 
     Returns binary data on success, or an XML document on error (in which case the HTTP content type will start with "text/xml"). 
     */
-    public byte[] stream(
+    public BufferedReader stream(
             String id, //  A string which uniquely identifies the file to stream. Obtained by calls to getMusicDirectory.
             Object maxBitRate, // [opt] (Since 1.2.0) If specified, the server will attempt to limit the bitrate to this value, in kilobits per second. If set to zero, no limit is imposed. 
             Object format, // [opt] (Since 1.6.0) Specifies the preferred target format (e.g., "mp3" or "flv") in case there are multiple applicable transcodings. Starting with 1.9.0 you can use the special value "raw" to disable transcoding. 
@@ -468,7 +487,6 @@ public class Api {
             Boolean converted // [default:false] (Since 1.14.0) Only applicable to video streaming. Subsonic can optimize videos for streaming by converting them to MP4. If a conversion exists for the video in question, then setting this parameter to "true" will cause the converted video to be returned instead of the original. 
     ) {
         Objects.requireNonNull(id, "id required");
-        return new byte[0];
     }
 
     /*
@@ -476,11 +494,10 @@ public class Api {
     Downloads a given media file. Similar to stream, but this method returns the original media data without transcoding or downsampling. 
     Returns binary data on success, or an XML document on error (in which case the HTTP content type will start with "text/xml"). 
     */
-    public byte[] download(
+    public BufferedReader download(
             String id //  A string which uniquely identifies the file to download. Obtained by calls to getMusicDirectory.
     ) {
         Objects.requireNonNull(id, "id required");
-        return new byte[0];
     }
 
     /*
@@ -496,7 +513,7 @@ public class Api {
         Objects.requireNonNull(id, "id required");
         Reader reader = new StringReader("content");
         BufferedReader bufferedReader = new BufferedReader(reader);
-        return bufferedReader;
+        //return bufferedReader;
     }
 
     /*
@@ -513,21 +530,47 @@ public class Api {
         throw new UnsupportedOperationException();
     }
 
+    public static class BinaryResponse {
+        private final InputStream stream;
+        private final String mimeType;
+
+        public BinaryResponse(InputStream stream, String mimeType) {
+            this.stream = stream;
+            this.mimeType = mimeType;
+        }
+
+        public InputStream getStream() {
+            return stream;
+        }
+
+        public String getMimeType() {
+            return mimeType;
+        }
+    }
+    
     /*
     http://your-server/rest/getCoverArt Since 1.0.0 
     Returns a cover art image. 
     Returns the cover art image in binary form. 
     */
-    public BufferedImage getCoverArt(
+    public BinaryResponse getCoverArt(
             String id, //  The ID of a song, album or artist.
             Integer size // [opt] If specified, scale image to this size.
     ) {
         Objects.requireNonNull(id, "id required");
         // size = square width and height
-        BufferedImage bufferedImage = new BufferedImage(128, 128, BufferedImage.TYPE_INT_RGB);
-        return bufferedImage;
+        int iSize = size == null ? 128 : size;
+        BufferedImage bufferedImage = new BufferedImage(iSize, iSize, BufferedImage.TYPE_INT_RGB);
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(bufferedImage, "png", baos);
+            return new BinaryResponse(new ByteArrayInputStream(baos.toByteArray()), StringUtil.getMimeType("png"));
+        } catch (IOException ex) {
+            Logger.getLogger(Api.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        return null;
     }
-
+    
     /*
     http://your-server/rest/getLyrics Since 1.2.0 
     Searches for and returns lyrics for a given song. 
@@ -546,11 +589,11 @@ public class Api {
     Returns the avatar (personal image) for a user. 
     Returns the avatar image in binary form. 
     */
-    public BufferedImage getAvatar(
+    public BinaryResponse getAvatar(
             String username //  The user in question.
     ) {
         BufferedImage bufferedImage = new BufferedImage(128, 128, BufferedImage.TYPE_INT_RGB);
-        return bufferedImage;
+        return null;
     }
 
     /*
@@ -613,6 +656,7 @@ public class Api {
     */
     public Shares getShares() {
         Shares shares = new Shares();
+        Share share = new Share();
         return shares;
     }
 
@@ -622,11 +666,13 @@ public class Api {
     Returns a <subsonic-response> element with a nested <shares> element on success, which in turns contains a single <share> element for the newly created share. 
     */
     public Share createShare(
-            String id, //  ID of a song, album or video to share. Use one id parameter for each entry to share.
+            List<String> ids, //  ID of a song, album or video to share. Use one id parameter for each entry to share.
             String description, // [opt] A user-defined description that will be displayed to people visiting the shared media.
             Long expires // [opt] The time at which the share expires. Given as milliseconds since 1970.
     ) {
-        Objects.requireNonNull(id, "id required");
+        Objects.requireNonNull(ids, "id required");
+        if (ids.isEmpty())
+            throw new IllegalArgumentException();
         Share share = new Share();
         return share;
     }
@@ -665,6 +711,7 @@ public class Api {
             String id // [opt] (Since 1.9.0) If specified, only return the Podcast channel with this ID.
     ) {
         Podcasts podcasts = new Podcasts();
+        PodcastChannel podcastChannel = new PodcastChannel();
         return podcasts;
     }
 
@@ -677,6 +724,7 @@ public class Api {
             Integer count // [default:20] The maximum number of episodes to return.
     ) {
         NewestPodcasts newestPodcasts = new NewestPodcasts();
+        PodcastEpisode podcastEpisode = new PodcastEpisode();
         return newestPodcasts;
     }
 
@@ -731,20 +779,63 @@ public class Api {
         Objects.requireNonNull(id, "id required");
     }
 
+      
     /*
     http://your-server/rest/jukeboxControl Since 1.2.0 
-    Controls the jukebox, i.e., playback directly on the server's audio hardware. Note: The user must be authorized to control the jukebox (see Settings > Users > User is allowed to play files in jukebox mode). 
-    Returns a <jukeboxStatus> element on success, unless the get action is used, in which case a nested <jukeboxPlaylist> element is returned. Example 1. Example 2. 
+    Controls the jukebox, i.e., playback directly on the server's audio hardware. 
+    Note: The user must be authorized to control the jukebox (see Settings > Users > User is allowed to play files in jukebox mode). 
+    Returns a <jukeboxStatus> element on success, unless the get action is used, in which case a nested <jukeboxPlaylist> element is returned.
     */
     public JukeboxStatus jukeboxControl(
             String action, //  The operation to perform. Must be one of: get, status (since 1.7.0), set (since 1.7.0), start, stop, skip, add, clear, remove, shuffle, setGain 
             Integer index, // [opt] Used by skip and remove. Zero-based index of the song to skip to or remove. 
             Integer offset, // [opt] (Since 1.7.0) Used by skip. Start playing this many seconds into the track. 
-            String id, // [opt] Used by add and set. ID of song to add to the jukebox playlist. Use multiple id parameters to add many songs in the same request. (set is similar to a clear followed by a add, but will not change the currently playing track.) 
+            List<String> ids, // [opt] Used by add and set. ID of song to add to the jukebox playlist. Use multiple id parameters to add many songs in the same request. 
+                              //       (set is similar to a clear followed by a add, but will not change the currently playing track.) 
             Float gain // [opt] Used by setGain to control the playback volume. A float value between 0.0 and 1.0.
     ) {
+        Objects.requireNonNull(action, "action required");
         JukeboxStatus jukeboxStatus = new JukeboxPlaylist();
-        return jukeboxStatus;
+        jukeboxStatus.setPlaying(false);
+        jukeboxStatus.setCurrentIndex(0);
+        jukeboxStatus.setGain(1.0f);
+        switch (action) {
+            case "get":
+                JukeboxPlaylist jukeboxPlaylist = new JukeboxPlaylist();
+                jukeboxPlaylist.setPlaying(false);
+                jukeboxPlaylist.setCurrentIndex(0);
+                jukeboxPlaylist.setGain(1.0f);
+                Child child = new Child();
+                return jukeboxPlaylist;
+            case "status":
+                return jukeboxStatus;
+            case "set":
+                Objects.requireNonNull(ids, "id required");
+                return jukeboxStatus;
+            case "start":
+                return jukeboxStatus;
+            case "stop":
+                return jukeboxStatus;
+            case "skip":
+                Objects.requireNonNull(index, "index required");
+                Objects.requireNonNull(offset, "offset required");
+                return jukeboxStatus;
+            case "add":
+                Objects.requireNonNull(ids, "id required");
+                return jukeboxStatus;
+            case "clear":
+                return jukeboxStatus;
+            case "remove":
+                Objects.requireNonNull(index, "index required");
+                return jukeboxStatus;
+            case "shuffle":
+                return jukeboxStatus;
+            case "setGain":
+                Objects.requireNonNull(gain, "gain required");
+                return jukeboxStatus;
+            default:
+                throw new IllegalArgumentException();
+        }
     }
 
     /*
@@ -754,6 +845,7 @@ public class Api {
     */
     public InternetRadioStations getInternetRadioStations() {
         InternetRadioStations internetRadioStations = new InternetRadioStations();
+        InternetRadioStation internetRadioStation = new InternetRadioStation();
         return internetRadioStations;
     }
 
@@ -803,6 +895,7 @@ public class Api {
             String since // [opt] Only return messages newer than this time (in millis since Jan 1 1970).
     ) {
         ChatMessages chatMessages = new ChatMessages();
+        ChatMessage chatMessage = new ChatMessage();
         return chatMessages;
     }
 
@@ -825,7 +918,6 @@ public class Api {
             String username //  The name of the user to retrieve. You can only retrieve your own user unless you have admin privileges. 
     ) {
         User user = new User();
-        return user;
     }
 
     /*
@@ -835,7 +927,8 @@ public class Api {
     */
     public Users getUsers() {
         Users users = new Users();
-        return users;
+        User user = new User();
+        //return users;
     }
 
     /*
@@ -860,8 +953,11 @@ public class Api {
             Boolean podcastRole, // [default:false] Whether the user is allowed to administrate Podcasts.
             Boolean shareRole, // [default:false] (Since 1.8.0) Whether the user is allowed to share files with anyone.
             Boolean videoConversionRole, // [default:false] (Since 1.15.0) Whether the user is allowed to start video conversions.
-            List<Object> musicFolderId // [opt] All folders (Since 1.12.0) IDs of the music folders the user is allowed access to. Include the parameter once for each folder.
+            List<Object> musicFolderIds // [opt] All folders (Since 1.12.0) IDs of the music folders the user is allowed access to. Include the parameter once for each folder.
     ) {
+        Objects.requireNonNull(username);
+        Objects.requireNonNull(password);
+        Objects.requireNonNull(email);
     }
 
     /*
@@ -888,6 +984,8 @@ public class Api {
             Integer musicFolderId, // [opt] (Since 1.12.0) IDs of the music folders the user is allowed access to. Include the parameter once for each folder.
             Object maxBitRate // [opt] (Since 1.13.0) The maximum bit rate (in Kbps) for the user. Audio streams of higher bit rates are automatically downsampled to this bit rate. Legal values: 0 (no limit), 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320. 
     ) {
+        Objects.requireNonNull(username);
+        Objects.requireNonNull(password);
     }
 
     /*
@@ -918,6 +1016,7 @@ public class Api {
     */
     public Bookmarks getBookmarks() {
         Bookmarks bookmarks = new Bookmarks();
+        Bookmark bookmark = new Bookmark();
         return bookmarks;
     }
 
@@ -952,7 +1051,7 @@ public class Api {
     */
     public PlayQueue getPlayQueue() {
         PlayQueue playQueue = new PlayQueue();
-        return playQueue;
+        //return playQueue;
     }
 
     /*
@@ -961,11 +1060,11 @@ public class Api {
     Returns an empty <subsonic-response> element on success. 
     */
     public void savePlayQueue(
-            String id, //  ID of a song in the play queue. Use one id parameter for each song in the play queue.
+            List<String> ids, //  ID of a song in the play queue. Use one id parameter for each song in the play queue.
             Object current, // [opt] The ID of the current playing song.
             Long position // [opt] The position in milliseconds within the currently playing song.
     ) {
-        Objects.requireNonNull(id, "id required");
+        Objects.requireNonNull(ids, "id required");
     }
 
     /*
@@ -975,6 +1074,7 @@ public class Api {
     */
     public ScanStatus getScanStatus() {
         ScanStatus scanStatus = new ScanStatus();
+        scanStatus.setScanning(false);
         return scanStatus;
     }
 
@@ -985,7 +1085,9 @@ public class Api {
     */
     public ScanStatus startScan() {
         ScanStatus scanStatus = new ScanStatus();
+        scanStatus.setScanning(false);
         return scanStatus;
     }
+
 
 }
