@@ -22,13 +22,22 @@ package org.airsonic.player.controller;
 import java.io.IOException;
 import java.util.*;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
 import m35.subsonicapi.Api;
+import org.airsonic.player.domain.MediaFile;
+import org.airsonic.player.domain.Player;
+import org.airsonic.player.domain.PlayerTechnology;
+import org.airsonic.player.service.MediaFileService;
+import org.airsonic.player.service.PlayerService;
+import org.airsonic.player.util.StringUtil;
 import org.airsonic.player.util.Util;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -55,6 +64,10 @@ public class SubsonicRESTController {
 
     private static final Logger LOG = LoggerFactory.getLogger(SubsonicRESTController.class);
 
+    @Autowired
+    private PlayerService playerService;
+    @Autowired
+    private MediaFileService mediaFileService;
     private m35.subsonicapi.Api api;
 
     private final JAXBWriter jaxbWriter = new JAXBWriter();
@@ -69,10 +82,6 @@ public class SubsonicRESTController {
         error(request, response, ErrorCode.MISSING_PARAMETER, "Required param ("+exception.getParameterName()+") is missing");
     }
 
-    public void error(HttpServletRequest request, HttpServletResponse response, ErrorCode code, String message) throws Exception {
-        jaxbWriter.writeErrorResponse(request, response, code, message);
-    }
-    
     @RequestMapping(value = "/ping")
     public void ping(HttpServletRequest request, HttpServletResponse response) throws Exception {
         Response res = createResponse();
@@ -619,15 +628,45 @@ public class SubsonicRESTController {
 
     @SuppressWarnings("UnusedParameters")
     public ModelAndView videoPlayer(HttpServletRequest request, HttpServletResponse response) throws Exception {
-        String id = getStringParameter(request, "id");
-        Integer timeOffset = getIntParameter(request, "timeOffset");
+        //String id = getStringParameter(request, "id");
+        //Integer timeOffset = getIntParameter(request, "timeOffset");
         String u = getStringParameter(request, "u");
         String p = getStringParameter(request, "p");
         String c = getStringParameter(request, "c");
         String v = getStringParameter(request, "v");
         Integer maxBitRate = getIntParameter(request, "maxBitRate");
         Boolean autoplay = getBooleanParameter(request, "autoplay");
-        return null;
+
+        request = wrapRequest(request);
+
+        Map<String, Object> map = new HashMap<String, Object>();
+        int id = getRequiredIntParameter(request, "id");
+        MediaFile file = mediaFileService.getMediaFile(id);
+
+        int timeOffset = getIntParameter(request, "timeOffset", 0);
+        timeOffset = Math.max(0, timeOffset);
+        Integer duration = file.getDurationSeconds();
+        if (duration != null) {
+            map.put("skipOffsets", VideoPlayerController.createSkipOffsets(duration));
+            timeOffset = Math.min(duration, timeOffset);
+            duration -= timeOffset;
+        }
+
+        map.put("id", request.getParameter("id"));
+        map.put("u", u);
+        map.put("p", p);
+        map.put("c", c);
+        map.put("v", v);
+        map.put("video", file);
+        map.put("maxBitRate", getIntParameter(request, "maxBitRate", VideoPlayerController.DEFAULT_BIT_RATE));
+        map.put("duration", duration);
+        map.put("timeOffset", timeOffset);
+        map.put("bitRates", VideoPlayerController.BIT_RATES);
+        map.put("autoplay", getBooleanParameter(request, "autoplay", true));
+
+        ModelAndView result = new ModelAndView("rest/videoPlayer");
+        result.addObject("model", map);
+        return result;
     }
 
     @RequestMapping(value = "/getCoverArt")
@@ -812,12 +851,80 @@ public class SubsonicRESTController {
         this.jaxbWriter.writeResponse(request, response, res);
     }
 
+    private HttpServletRequest wrapRequest(HttpServletRequest request) {
+        return wrapRequest(request, false);
+    }
+
+    private HttpServletRequest wrapRequest(final HttpServletRequest request, boolean jukebox) {
+        final String playerId = createPlayerIfNecessary(request, jukebox);
+        return new HttpServletRequestWrapper(request) {
+            @Override
+            public String getParameter(String name) {
+                // Returns the correct player to be used in PlayerService.getPlayer()
+                if ("player".equals(name)) {
+                    return playerId;
+                }
+
+                // Support old style ID parameters.
+                if ("id".equals(name)) {
+                    return mapId(request.getParameter("id"));
+                }
+
+                return super.getParameter(name);
+            }
+        };
+    }
+
+    private String mapId(String id) {
+        if (id == null || id.startsWith(CoverArtController.ALBUM_COVERART_PREFIX) ||
+                id.startsWith(CoverArtController.ARTIST_COVERART_PREFIX) || StringUtils.isNumeric(id)) {
+            return id;
+        }
+
+        try {
+            String path = StringUtil.utf8HexDecode(id);
+            MediaFile mediaFile = mediaFileService.getMediaFile(path);
+            return String.valueOf(mediaFile.getId());
+        } catch (Exception x) {
+            return id;
+        }
+    }
+
     private Response createResponse() {
         return jaxbWriter.createResponse(true);
     }
 
     private void writeEmptyResponse(HttpServletRequest request, HttpServletResponse response) throws Exception {
         jaxbWriter.writeResponse(request, response, createResponse());
+    }
+
+    public void error(HttpServletRequest request, HttpServletResponse response, ErrorCode code, String message) throws Exception {
+        jaxbWriter.writeErrorResponse(request, response, code, message);
+    }
+
+    private String createPlayerIfNecessary(HttpServletRequest request, boolean jukebox) {
+        String username = request.getRemoteUser();
+        String clientId = request.getParameter("c");
+        if (jukebox) {
+            clientId += "-jukebox";
+        }
+
+        List<Player> players = playerService.getPlayersForUserAndClientId(username, clientId);
+
+        // If not found, create it.
+        if (players.isEmpty()) {
+            Player player = new Player();
+            player.setIpAddress(request.getRemoteAddr());
+            player.setUsername(username);
+            player.setClientId(clientId);
+            player.setName(clientId);
+            player.setTechnology(jukebox ? PlayerTechnology.JUKEBOX : PlayerTechnology.EXTERNAL_WITH_PLAYLIST);
+            playerService.createPlayer(player);
+            players = playerService.getPlayersForUserAndClientId(username, clientId);
+        }
+
+        // Return the player ID.
+        return !players.isEmpty() ? String.valueOf(players.get(0).getId()) : null;
     }
 
     public enum ErrorCode {
