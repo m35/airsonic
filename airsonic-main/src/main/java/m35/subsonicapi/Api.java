@@ -46,9 +46,7 @@ public class Api {
     public MusicFolders getMusicFolders() {
         MusicFolders musicFolders = new MusicFolders();
         MusicFolder musicFolder = new MusicFolder();
-        
-        musicFolders.getMusicFolder().add(musicFolder);
-        return musicFolders;
+        //return musicFolders;
     }
 
     /*
@@ -102,11 +100,12 @@ public class Api {
     Returns details for an artist, including a list of albums. This method organizes music according to ID3 tags. 
     Returns a <subsonic-response> element with a nested <artist> element on success.
     */
-    public Artist getArtist(
+    // The API lies, the XSD only allows ArtistWithAlbumsID3
+    public ArtistWithAlbumsID3 getArtist(
             String id       // The artist ID.
     ) {
         Objects.requireNonNull(id, "id required");
-        Artist artist = new Artist();
+        ArtistWithAlbumsID3 artist = new ArtistWithAlbumsID3();
         //return artist;
     }
 
@@ -423,12 +422,12 @@ public class Api {
     Returns a listing of files in a saved playlist. 
     Returns a <subsonic-response> element with a nested <playlist> element on success.
     */
-    public Playlist getPlaylist(
+    // The api lies, only PlaylistWithSongs
+    public PlaylistWithSongs getPlaylist(
             String id //   ID of the playlist to return, as obtained by getPlaylists.
     ) {
         Objects.requireNonNull(id, "id required");
-        Playlist playlist = new Playlist();
-        //return playlist;
+        PlaylistWithSongs playlistWithSongs = new PlaylistWithSongs();
         throw new UnsupportedOperationException();
     }
 
@@ -436,13 +435,14 @@ public class Api {
     Creates (or updates) a playlist. 
     Since 1.14.0 the newly created/updated playlist is returned. In earlier versions an empty <subsonic-response> element is returned. 
     */
-    public Playlist createPlaylist(
+    // The api lies, only PlaylistWithSongs
+    public PlaylistWithSongs createPlaylist(
         String playlistId, // [req if updating] The playlist ID.
         String name, // [req if updating] The human-readable name of the playlist.
-        List<Object> songId // [opt] ID of a song in the playlist. Use one songId parameter for each song in the playlist.
+        List<String> songId // [opt] ID of a song in the playlist. Use one songId parameter for each song in the playlist.
     ) {
-        Playlist playlist = new Playlist();
-        return playlist;
+        PlaylistWithSongs playlistWithSongs = new PlaylistWithSongs();
+        //return playlistWithSongs;
     }
 
 
@@ -455,8 +455,8 @@ public class Api {
         String name, // [opt] The human-readable name of the playlist.
         String comment, // [opt] The playlist comment.
         Boolean public_, // [default:false?] true if the playlist should be visible to all users, false otherwise.
-        List<Object> songIdToAdd, // [opt] Add this song with this ID to the playlist. Multiple parameters allowed.
-        List<Object> songIndexToRemove // [opt] Remove the song at this position in the playlist. Multiple parameters allowed.
+        List<Integer> songIdToAdd, // [opt] Add this song with this ID to the playlist. Multiple parameters allowed.
+        List<Integer> songIndexToRemove // [opt] Remove the song at this position in the playlist. Multiple parameters allowed.
     ) {
     }
 
@@ -477,16 +477,34 @@ public class Api {
     Streams a given media file. 
     Returns binary data on success, or an XML document on error (in which case the HTTP content type will start with "text/xml"). 
     */
-    public BufferedReader stream(
+    public BinaryResponse stream(
             String id, //  A string which uniquely identifies the file to stream. Obtained by calls to getMusicDirectory.
-            Object maxBitRate, // [opt] (Since 1.2.0) If specified, the server will attempt to limit the bitrate to this value, in kilobits per second. If set to zero, no limit is imposed. 
-            Object format, // [opt] (Since 1.6.0) Specifies the preferred target format (e.g., "mp3" or "flv") in case there are multiple applicable transcodings. Starting with 1.9.0 you can use the special value "raw" to disable transcoding. 
+            Integer maxBitRate, // [opt] (Since 1.2.0) If specified, the server will attempt to limit the bitrate to this value, in kilobits per second. If set to zero, no limit is imposed. 
+            String format, // [opt] (Since 1.6.0) Specifies the preferred target format (e.g., "mp3" or "flv") in case there are multiple applicable transcodings. Starting with 1.9.0 you can use the special value "raw" to disable transcoding. 
             Integer timeOffset, // [opt] Only applicable to video streaming. If specified, start streaming at the given offset (in seconds) into the video. Typically used to implement video skipping. 
-            Object size, // [opt] (Since 1.6.0) Only applicable to video streaming. Requested video size specified as WxH, for instance "640x480". 
+            Integer size, // [opt] (Since 1.6.0) Only applicable to video streaming. Requested video size specified as WxH, for instance "640x480". 
             Boolean estimateContentLength, // [default:false] (Since 1.8.0). If set to "true", the Content-Length HTTP header will be set to an estimated value for transcoded or downsampled media. 
             Boolean converted // [default:false] (Since 1.14.0) Only applicable to video streaming. Subsonic can optimize videos for streaming by converting them to MP4. If a conversion exists for the video in question, then setting this parameter to "true" will cause the converted video to be returned instead of the original. 
     ) {
         Objects.requireNonNull(id, "id required");
+    }
+    
+    public BinaryResponse stream_implementation(
+            String id,
+            Integer maxBitRate,
+            String format,
+            Boolean estimateContentLength,
+            
+            Integer offsetSeconds, // !!!
+            String suffix,
+            String playlist, // id
+            Boolean hls,
+            Integer duration,
+            Integer path,
+            String icy_metadata_header,
+            String range_header
+    ) {
+        
     }
 
     /*
@@ -494,10 +512,24 @@ public class Api {
     Downloads a given media file. Similar to stream, but this method returns the original media data without transcoding or downsampling. 
     Returns binary data on success, or an XML document on error (in which case the HTTP content type will start with "text/xml"). 
     */
-    public BufferedReader download(
+    // the api lies like crazy! implimentation allows several parameters and downloading lists
+    public BinaryResponse download(
             String id //  A string which uniquely identifies the file to download. Obtained by calls to getMusicDirectory.
     ) {
-        Objects.requireNonNull(id, "id required");
+        return download_implementation(id, null, null, null);
+    }
+    
+    /*
+    As it is in the implementation.
+    */
+    public BinaryResponse download_implementation(
+        String id, // song id: a single song
+        String playlist, // playlist id: all files in the playlist. If 1 song, download it only. If > 1 song, combine into a zip file
+        String player, // player id: all the files playing in the player. If 1 song, download it only. If > 1 song, combine into a zip file
+        List<String> i, // Indexes in the list of the songs to download.
+        String range_header
+    ) {
+        
     }
 
     /*
@@ -505,15 +537,21 @@ public class Api {
     Creates an HLS (HTTP Live Streaming) playlist used for streaming video or audio. HLS is a streaming protocol implemented by Apple and works by breaking the overall stream into a sequence of small HTTP-based file downloads. It's supported by iOS and newer versions of Android. This method also supports adaptive bitrate streaming, see the bitRate parameter. 
     Returns an M3U8 playlist on success (content type "application/vnd.apple.mpegurl"), or an XML document on error (in which case the HTTP content type will start with "text/xml"). 
     */
-    public BufferedReader hls(
+    public BinaryResponse hls(
             String id, //  A string which uniquely identifies the media file to stream.
-            Object bitrate, // [opt] If specified, the server will attempt to limit the bitrate to this value, in kilobits per second. If this parameter is specified more than once, the server will create a variant playlist, suitable for adaptive bitrate streaming. The playlist will support streaming at all the specified bitrates. The server will automatically choose video dimensions that are suitable for the given bitrates. Since 1.9.0 you may explicitly request a certain width (480) and height (360) like so: bitRate=1000@480x360 
+            List<String> bitrate, // [opt] If specified, the server will attempt to limit the bitrate to this value, in kilobits per second. If this parameter is specified more than once, the server will create a variant playlist, suitable for adaptive bitrate streaming. The playlist will support streaming at all the specified bitrates. The server will automatically choose video dimensions that are suitable for the given bitrates. Since 1.9.0 you may explicitly request a certain width (480) and height (360) like so: bitRate=1000@480x360 
             String audioTrack // [opt] The ID of the audio track to use. See getVideoInfo for how to get the list of available audio tracks for a video. 
     ) {
         Objects.requireNonNull(id, "id required");
-        Reader reader = new StringReader("content");
-        BufferedReader bufferedReader = new BufferedReader(reader);
-        //return bufferedReader;
+    }
+    
+    public BinaryResponse hls_implementation(
+            String id,
+            List<String> bitrate,
+            String audioTrack,
+            String player
+    ) {
+        
     }
 
     /*
@@ -533,10 +571,12 @@ public class Api {
     public static class BinaryResponse {
         private final InputStream stream;
         private final String mimeType;
+        private final Integer length;
 
-        public BinaryResponse(InputStream stream, String mimeType) {
+        public BinaryResponse(InputStream stream, String mimeType, Integer length) {
             this.stream = stream;
             this.mimeType = mimeType;
+            this.length = length;
         }
 
         public InputStream getStream() {
@@ -545,6 +585,10 @@ public class Api {
 
         public String getMimeType() {
             return mimeType;
+        }
+        
+        public Integer getLength() {
+            return length;
         }
     }
     
@@ -593,7 +637,6 @@ public class Api {
             String username //  The user in question.
     ) {
         BufferedImage bufferedImage = new BufferedImage(128, 128, BufferedImage.TYPE_INT_RGB);
-        return null;
     }
 
     /*
@@ -603,8 +646,8 @@ public class Api {
     */
     public void star(
             List<String> id, // [opt] The ID of the file (song) or folder (album/artist) to star. Multiple parameters allowed.
-            Object albumId, // [opt] The ID of an album to star. Use this rather than id if the client accesses the media collection according to ID3 tags rather than file structure. Multiple parameters allowed. 
-            Object artistId // [opt] The ID of an artist to star. Use this rather than id if the client accesses the media collection according to ID3 tags rather than file structure. Multiple parameters allowed. 
+            List<String> albumId, // [opt] The ID of an album to star. Use this rather than id if the client accesses the media collection according to ID3 tags rather than file structure. Multiple parameters allowed. 
+            List<String> artistId // [opt] The ID of an artist to star. Use this rather than id if the client accesses the media collection according to ID3 tags rather than file structure. Multiple parameters allowed. 
     ) {
     }
 
@@ -615,8 +658,8 @@ public class Api {
     */
     public void unstar(
             List<String> id, // [opt] The ID of the file (song) or folder (album/artist) to unstar. Multiple parameters allowed.
-            Object albumId, // [opt] The ID of an album to unstar. Use this rather than id if the client accesses the media collection according to ID3 tags rather than file structure. Multiple parameters allowed. 
-            Object artistId // [opt] The ID of an artist to unstar. Use this rather than id if the client accesses the media collection according to ID3 tags rather than file structure. Multiple parameters allowed. 
+            List<String> albumId, // [opt] The ID of an album to unstar. Use this rather than id if the client accesses the media collection according to ID3 tags rather than file structure. Multiple parameters allowed. 
+            List<String> artistId // [opt] The ID of an artist to unstar. Use this rather than id if the client accesses the media collection according to ID3 tags rather than file structure. Multiple parameters allowed. 
     ) {
     }
 
@@ -647,6 +690,18 @@ public class Api {
             Boolean submission // [default:true] Whether this is a "submission" or a "now playing" notification.
     ) {
         Objects.requireNonNull(id, "id required");
+        scrobble_implementation(Collections.singletonList(id), Collections.singletonList(time), submission);
+    }
+    
+    // implementation allows for multiple
+    public void scrobble_implementation(
+        List<String> id,
+        List<Long> time,
+        Boolean submission
+    ) {
+        assert id.size() == time.size();
+                
+        TODO;
     }
 
     /*
@@ -714,7 +769,7 @@ public class Api {
         PodcastChannel podcastChannel = new PodcastChannel();
         return podcasts;
     }
-
+    
     /*
     http://your-server/rest/getNewestPodcasts Since 1.13.0 
     Returns the most recently published Podcast episodes. 
@@ -953,7 +1008,7 @@ public class Api {
             Boolean podcastRole, // [default:false] Whether the user is allowed to administrate Podcasts.
             Boolean shareRole, // [default:false] (Since 1.8.0) Whether the user is allowed to share files with anyone.
             Boolean videoConversionRole, // [default:false] (Since 1.15.0) Whether the user is allowed to start video conversions.
-            List<Object> musicFolderIds // [opt] All folders (Since 1.12.0) IDs of the music folders the user is allowed access to. Include the parameter once for each folder.
+            List<Integer> musicFolderIds // [opt] All folders (Since 1.12.0) IDs of the music folders the user is allowed access to. Include the parameter once for each folder.
     ) {
         Objects.requireNonNull(username);
         Objects.requireNonNull(password);
@@ -981,7 +1036,7 @@ public class Api {
             Object podcastRole, // [opt] Whether the user is allowed to administrate Podcasts.
             Object shareRole, // [opt] Whether the user is allowed to share files with anyone.
             Object videoConversionRole, // false (Since 1.15.0) Whether the user is allowed to start video conversions.
-            Integer musicFolderId, // [opt] (Since 1.12.0) IDs of the music folders the user is allowed access to. Include the parameter once for each folder.
+            List<Integer musicFolderIds>, // [opt] (Since 1.12.0) IDs of the music folders the user is allowed access to. Include the parameter once for each folder.
             Object maxBitRate // [opt] (Since 1.13.0) The maximum bit rate (in Kbps) for the user. Audio streams of higher bit rates are automatically downsampled to this bit rate. Legal values: 0 (no limit), 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320. 
     ) {
         Objects.requireNonNull(username);
