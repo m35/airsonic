@@ -1,15 +1,11 @@
 package m35.subsonicapi;
 
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Reader;
-import java.io.StringReader;
 import java.util.Collections;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -638,6 +634,14 @@ public class Api {
     ) {
         BufferedImage bufferedImage = new BufferedImage(128, 128, BufferedImage.TYPE_INT_RGB);
     }
+    
+    public BinaryResponse getAvatar_implementation(
+        String username,
+        String id, // getSystemAvatar
+        Boolean forceCustom // force custom avatar
+    ) {
+        
+    }
 
     /*
     http://your-server/rest/star Since 1.8.0 
@@ -721,12 +725,12 @@ public class Api {
     Returns a <subsonic-response> element with a nested <shares> element on success, which in turns contains a single <share> element for the newly created share. 
     */
     public Share createShare(
-            List<String> ids, //  ID of a song, album or video to share. Use one id parameter for each entry to share.
+            List<String> id, //  ID of a song, album or video to share. Use one id parameter for each entry to share.
             String description, // [opt] A user-defined description that will be displayed to people visiting the shared media.
             Long expires // [opt] The time at which the share expires. Given as milliseconds since 1970.
     ) {
-        Objects.requireNonNull(ids, "id required");
-        if (ids.isEmpty())
+        Objects.requireNonNull(id, "id required");
+        if (id.isEmpty())
             throw new IllegalArgumentException();
         Share share = new Share();
         return share;
@@ -845,7 +849,7 @@ public class Api {
             String action, //  The operation to perform. Must be one of: get, status (since 1.7.0), set (since 1.7.0), start, stop, skip, add, clear, remove, shuffle, setGain 
             Integer index, // [opt] Used by skip and remove. Zero-based index of the song to skip to or remove. 
             Integer offset, // [opt] (Since 1.7.0) Used by skip. Start playing this many seconds into the track. 
-            List<String> ids, // [opt] Used by add and set. ID of song to add to the jukebox playlist. Use multiple id parameters to add many songs in the same request. 
+            List<String> id, // [opt] Used by add and set. ID of song to add to the jukebox playlist. Use multiple id parameters to add many songs in the same request. 
                               //       (set is similar to a clear followed by a add, but will not change the currently playing track.) 
             Float gain // [opt] Used by setGain to control the playback volume. A float value between 0.0 and 1.0.
     ) {
@@ -865,7 +869,7 @@ public class Api {
             case "status":
                 return jukeboxStatus;
             case "set":
-                Objects.requireNonNull(ids, "id required");
+                Objects.requireNonNull(id, "id required");
                 return jukeboxStatus;
             case "start":
                 return jukeboxStatus;
@@ -876,7 +880,7 @@ public class Api {
                 Objects.requireNonNull(offset, "offset required");
                 return jukeboxStatus;
             case "add":
-                Objects.requireNonNull(ids, "id required");
+                Objects.requireNonNull(id, "id required");
                 return jukeboxStatus;
             case "clear":
                 return jukeboxStatus;
@@ -1008,7 +1012,7 @@ public class Api {
             Boolean podcastRole, // [default:false] Whether the user is allowed to administrate Podcasts.
             Boolean shareRole, // [default:false] (Since 1.8.0) Whether the user is allowed to share files with anyone.
             Boolean videoConversionRole, // [default:false] (Since 1.15.0) Whether the user is allowed to start video conversions.
-            List<Integer> musicFolderIds // [opt] All folders (Since 1.12.0) IDs of the music folders the user is allowed access to. Include the parameter once for each folder.
+            List<Integer> musicFolderId // [opt] All folders (Since 1.12.0) IDs of the music folders the user is allowed access to. Include the parameter once for each folder.
     ) {
         Objects.requireNonNull(username);
         Objects.requireNonNull(password);
@@ -1020,24 +1024,25 @@ public class Api {
     Modifies an existing Subsonic user, using the following parameters: 
     Returns an empty <subsonic-response> element on success. 
     */
+    // where did playlistRole go??
     public void updateUser(
             String username, //  The name of the user.
             String password, // [opt] The password of the user, either in clear text of hex-encoded (see above).
             String email, // [opt] The email address of the user.
-            Object ldapAuthenticated, // [opt] Whether the user is authenicated in LDAP.
-            Object adminRole, // [opt] Whether the user is administrator.
-            Object settingsRole, // [opt] Whether the user is allowed to change personal settings and password.
-            Object streamRole, // [opt] Whether the user is allowed to play files.
-            Object jukeboxRole, // [opt] Whether the user is allowed to play files in jukebox mode.
-            Object downloadRole, // [opt] Whether the user is allowed to download files.
-            Object uploadRole, // [opt] Whether the user is allowed to upload files.
-            Object coverArtRole, // [opt] Whether the user is allowed to change cover art and tags.
-            Object commentRole, // [opt] Whether the user is allowed to create and edit comments and ratings.
-            Object podcastRole, // [opt] Whether the user is allowed to administrate Podcasts.
-            Object shareRole, // [opt] Whether the user is allowed to share files with anyone.
-            Object videoConversionRole, // false (Since 1.15.0) Whether the user is allowed to start video conversions.
-            List<Integer musicFolderIds>, // [opt] (Since 1.12.0) IDs of the music folders the user is allowed access to. Include the parameter once for each folder.
-            Object maxBitRate // [opt] (Since 1.13.0) The maximum bit rate (in Kbps) for the user. Audio streams of higher bit rates are automatically downsampled to this bit rate. Legal values: 0 (no limit), 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320. 
+            Boolean ldapAuthenticated, // [opt] Whether the user is authenicated in LDAP.
+            Boolean adminRole, // [opt] Whether the user is administrator.
+            Boolean settingsRole, // [opt] Whether the user is allowed to change personal settings and password.
+            Boolean streamRole, // [opt] Whether the user is allowed to play files.
+            Boolean jukeboxRole, // [opt] Whether the user is allowed to play files in jukebox mode.
+            Boolean downloadRole, // [opt] Whether the user is allowed to download files.
+            Boolean uploadRole, // [opt] Whether the user is allowed to upload files.
+            Boolean coverArtRole, // [opt] Whether the user is allowed to change cover art and tags.
+            Boolean commentRole, // [opt] Whether the user is allowed to create and edit comments and ratings.
+            Boolean podcastRole, // [opt] Whether the user is allowed to administrate Podcasts.
+            Boolean shareRole, // [opt] Whether the user is allowed to share files with anyone.
+            Boolean videoConversionRole, // false (Since 1.15.0) Whether the user is allowed to start video conversions.
+            List<Integer> musicFolderId, // [opt] (Since 1.12.0) IDs of the music folders the user is allowed access to. Include the parameter once for each folder.
+            Integer maxBitRate // [opt] (Since 1.13.0) The maximum bit rate (in Kbps) for the user. Audio streams of higher bit rates are automatically downsampled to this bit rate. Legal values: 0 (no limit), 32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320. 
     ) {
         Objects.requireNonNull(username);
         Objects.requireNonNull(password);
@@ -1115,11 +1120,20 @@ public class Api {
     Returns an empty <subsonic-response> element on success. 
     */
     public void savePlayQueue(
-            List<String> ids, //  ID of a song in the play queue. Use one id parameter for each song in the play queue.
-            Object current, // [opt] The ID of the current playing song.
+            List<String> id, //  ID of a song in the play queue. Use one id parameter for each song in the play queue.
+            String current, // [opt] The ID of the current playing song.
             Long position // [opt] The position in milliseconds within the currently playing song.
     ) {
-        Objects.requireNonNull(ids, "id required");
+        Objects.requireNonNull(id, "id required");
+    }
+    
+    public void savePlayQueue_implementation(
+            List<String> id,
+            String current,
+            Long position,
+            String c // changed by, required
+    ) {
+        
     }
 
     /*
