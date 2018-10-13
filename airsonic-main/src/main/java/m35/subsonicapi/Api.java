@@ -16,8 +16,6 @@ import org.subsonic.restapi.*;
 
 public class Api {
 
-
-    
     /*
     Used to test connectivity with the server. Takes no extra parameters.
     Returns an empty <subsonic-response> element on success.

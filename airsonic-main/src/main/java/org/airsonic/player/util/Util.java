@@ -97,6 +97,17 @@ public final class Util {
         return result;
     }
 
+    public static List<Long> toLongList(long[] values) {
+        if (values == null) {
+            return Collections.emptyList();
+        }
+        List<Long> result = new ArrayList<Long>(values.length);
+        for (long value : values) {
+            result.add(value);
+        }
+        return result;
+    }
+
     public static int[] toIntArray(List<Integer> values) {
         if (values == null) {
             return new int[0];

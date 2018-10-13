@@ -21,7 +21,6 @@ package org.airsonic.player.controller;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import m35.subsonicapi.Api;
@@ -70,9 +69,14 @@ public class SubsonicRESTController {
         error(request, response, ErrorCode.MISSING_PARAMETER, "Required param ("+exception.getParameterName()+") is missing");
     }
 
+    public void error(HttpServletRequest request, HttpServletResponse response, ErrorCode code, String message) throws Exception {
+        jaxbWriter.writeErrorResponse(request, response, code, message);
+    }
+    
     @RequestMapping(value = "/ping")
     public void ping(HttpServletRequest request, HttpServletResponse response) throws Exception {
         Response res = createResponse();
+        api.ping();
         jaxbWriter.writeResponse(request, response, res);
     }
 
@@ -429,7 +433,7 @@ public class SubsonicRESTController {
     @RequestMapping(value = "/scrobble")
     public void scrobble(HttpServletRequest request, HttpServletResponse response) throws Exception {
         Boolean submission = getBooleanParameter(request, "");
-        List<Long> time = Arrays.asList(getLongParameters(request, "time"));
+        List<Long> time = Util.toLongList(getLongParameters(request, "time"));
         List<String> id = Arrays.asList(getStringParameters(request, "id"));
         api.scrobble_implementation(id, time, submission);
         writeEmptyResponse(request, response);
