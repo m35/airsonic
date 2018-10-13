@@ -802,7 +802,7 @@ public class SubsonicRESTController {
     public void getAlbumInfo(HttpServletRequest request, HttpServletResponse response) throws Exception {
         String id = getStringParameter(request, "id");
         Response res = createResponse();
-        res.setAlbumInfo(api.getAlbumInfo(id)); // !! bug fix, wasn't returning anything
+        res.setAlbumInfo(api.getAlbumInfo(id));
         jaxbWriter.writeResponse(request, response, res);
     }
 
@@ -810,7 +810,7 @@ public class SubsonicRESTController {
     public void getAlbumInfo2(HttpServletRequest request, HttpServletResponse response) throws Exception {
         String id = getStringParameter(request, "id");
         Response res = createResponse();
-        res.setAlbumInfo(api.getAlbumInfo2(id)); // !! bug fix, wasn't returning anything
+        res.setAlbumInfo(api.getAlbumInfo2(id));
         jaxbWriter.writeResponse(request, response, res);
     }
 
