@@ -346,7 +346,7 @@ class SubsonicRESTControllerX {
         }
 
         Response res = createResponse();
-        res.setSimilarSongs(result);
+        res.setSimilarSongs(result); // this does nothing!
         jaxbWriter.writeResponse(request, response, res);
     }
 
@@ -367,7 +367,7 @@ class SubsonicRESTControllerX {
         }
 
         Response res = createResponse();
-        res.setSimilarSongs2(result);
+        res.setSimilarSongs2(result); // this does nothing!
         jaxbWriter.writeResponse(request, response, res);
     }
 
@@ -378,7 +378,7 @@ class SubsonicRESTControllerX {
         TopSongs result = new TopSongs();
 
         Response res = createResponse();
-        res.setTopSongs(result);
+        res.setTopSongs(result); // this does nothing!
         jaxbWriter.writeResponse(request, response, res);
     }
 
@@ -397,7 +397,7 @@ class SubsonicRESTControllerX {
         }
 
         Response res = createResponse();
-        res.setArtistInfo(result);
+        res.setArtistInfo(result); // this does nothing!
         jaxbWriter.writeResponse(request, response, res);
     }
 
@@ -415,7 +415,7 @@ class SubsonicRESTControllerX {
         }
 
         Response res = createResponse();
-        res.setArtistInfo2(result);
+        res.setArtistInfo2(result); // this does nothing!
         jaxbWriter.writeResponse(request, response, res);
     }
 
@@ -2193,7 +2193,7 @@ class SubsonicRESTControllerX {
             return;
         }
 
-        Response res = createResponse();
+        Response res = createResponse(); // this does nothing!
         this.jaxbWriter.writeResponse(request, response, res);
     }
 
@@ -2209,7 +2209,7 @@ class SubsonicRESTControllerX {
             return;
         }
 
-        Response res = createResponse();
+        Response res = createResponse(); // this does nothing!
         this.jaxbWriter.writeResponse(request, response, res);
     }
 

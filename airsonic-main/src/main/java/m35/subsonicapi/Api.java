@@ -6,15 +6,41 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.SortedMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
+import org.airsonic.player.controller.JAXBWriter;
+import org.airsonic.player.controller.SubsonicRESTController;
+import org.airsonic.player.controller.SubsonicRESTControllerX;
+import org.airsonic.player.dao.AlbumDao;
+import org.airsonic.player.dao.ArtistDao;
+import org.airsonic.player.dao.MediaFileDao;
+import org.airsonic.player.domain.Album;
+import org.airsonic.player.domain.MediaFile;
+import org.airsonic.player.domain.MusicFolderContent;
+import org.airsonic.player.domain.MusicIndex;
+import org.airsonic.player.domain.Player;
+import org.airsonic.player.service.MediaFileService;
+import org.airsonic.player.service.MusicIndexService;
+import org.airsonic.player.service.PlayerService;
+import org.airsonic.player.service.RatingService;
+import org.airsonic.player.service.SecurityService;
+import org.airsonic.player.service.SettingsService;
 import org.airsonic.player.util.StringUtil;
+import org.springframework.beans.factory.annotation.Autowired;
+import static org.springframework.web.bind.ServletRequestUtils.getIntParameter;
+import static org.springframework.web.bind.ServletRequestUtils.getLongParameter;
+import static org.springframework.web.bind.ServletRequestUtils.getRequiredIntParameter;
 import org.subsonic.restapi.*;
 
 public class Api {
+
+    private final JAXBWriter jaxbWriter = new JAXBWriter();
 
     /*
     Used to test connectivity with the server. Takes no extra parameters.
@@ -29,7 +55,11 @@ public class Api {
     */
     public License getLicense() {
         License license = new License();
+        license.setEmail("airsonic@github.com");
         license.setValid(true);
+        Date neverExpireDate = new Date(Long.MAX_VALUE);
+        license.setLicenseExpires(jaxbWriter.convertDate(neverExpireDate));
+        license.setTrialExpires(jaxbWriter.convertDate(neverExpireDate));
         return license;
     }
 
@@ -37,10 +67,18 @@ public class Api {
     Returns all configured top-level music folders. Takes no extra parameters.
     Returns a <subsonic-response> element with a nested <musicFolders> element on success.
     */
-    public MusicFolders getMusicFolders() {
+    public MusicFolders getMusicFolders(
+            String username, 
+            SettingsService settingsService
+    ) {
         MusicFolders musicFolders = new MusicFolders();
-        MusicFolder musicFolder = new MusicFolder();
-        //return musicFolders;
+        for (org.airsonic.player.domain.MusicFolder musicFolder : settingsService.getMusicFoldersForUser(username)) {
+            org.subsonic.restapi.MusicFolder mf = new org.subsonic.restapi.MusicFolder();
+            mf.setId(musicFolder.getId());
+            mf.setName(musicFolder.getName());
+            musicFolders.getMusicFolder().add(mf);
+        }
+        return musicFolders;
     }
 
     /*
@@ -49,11 +87,77 @@ public class Api {
     */
     public Indexes getIndexes(
             Integer musicFolderId,   // If specified, only return artists in the music folder with the given ID. See getMusicFolders. 
-            Long ifModifiedSince  // [opt] If specified, only return a result if the artist collection has changed since the given time (in milliseconds since 1 Jan 1970). 
-    ) {
+            Long ifModifiedSince,  // [opt] If specified, only return a result if the artist collection has changed since the given time (in milliseconds since 1 Jan 1970). 
+            
+            long lastModified,
+            String username,
+            String ignoredArticles,
+            SettingsService settingsService,
+            MediaFileDao mediaFileDao,
+            MusicIndexService musicIndexService,
+            Player player,
+            RatingService ratingService
+    ) throws Exception {
         Objects.requireNonNull(musicFolderId, "musicFolderId required");
+        
+        if (ifModifiedSince == null) {
+            ifModifiedSince = 0L;
+        }
+
+        if (lastModified <= ifModifiedSince) {
+            return null;
+        }
+
         Indexes indexes = new Indexes();
-        //return indexes;
+        indexes.setLastModified(lastModified);
+        indexes.setIgnoredArticles(settingsService.getIgnoredArticles());
+
+        List<org.airsonic.player.domain.MusicFolder> musicFolders = settingsService.getMusicFoldersForUser(username);
+        if (musicFolderId != null) {
+            for (org.airsonic.player.domain.MusicFolder musicFolder : musicFolders) {
+                if (musicFolderId.equals(musicFolder.getId())) {
+                    musicFolders = Collections.singletonList(musicFolder);
+                    break;
+                }
+            }
+        }
+
+        for (MediaFile shortcut : musicIndexService.getShortcuts(musicFolders)) {
+            indexes.getShortcut().add(createJaxbArtist(shortcut, username));
+        }
+
+        MusicFolderContent musicFolderContent = musicIndexService.getMusicFolderContent(musicFolders, false);
+
+        for (Map.Entry<MusicIndex, List<MusicIndex.SortableArtistWithMediaFiles>> entry : musicFolderContent.getIndexedArtists().entrySet()) {
+            Index index = new Index();
+            indexes.getIndex().add(index);
+            index.setName(entry.getKey().getIndex());
+
+            for (MusicIndex.SortableArtistWithMediaFiles artist : entry.getValue()) {
+                for (MediaFile mediaFile : artist.getMediaFiles()) {
+                    if (mediaFile.isDirectory()) {
+                        Date starredDate = mediaFileDao.getMediaFileStarredDate(mediaFile.getId(), username);
+                        org.subsonic.restapi.Artist a = new org.subsonic.restapi.Artist();
+                        index.getArtist().add(a);
+                        a.setId(String.valueOf(mediaFile.getId()));
+                        a.setName(artist.getName());
+                        a.setStarred(jaxbWriter.convertDate(starredDate));
+
+                        if (mediaFile.isAlbum()) {
+                            a.setAverageRating(ratingService.getAverageRating(mediaFile));
+                            a.setUserRating(ratingService.getRatingForUser(username, mediaFile));
+                        }
+                    }
+                }
+            }
+        }
+
+        // Add children
+        for (MediaFile singleSong : musicFolderContent.getSingleSongs()) {
+            indexes.getChild().add(createJaxbChild(player, singleSong, username));
+        }
+
+        return indexes;
     }
 
     /*
@@ -61,21 +165,66 @@ public class Api {
     Returns a <subsonic-response> element with a nested <directory> element on success.
     */
     public Directory getMusicDirectory(
-            String id   // A string which uniquely identifies the music folder. Obtained by calls to getIndexes or getMusicDirectory. 
+            int id,   // A string which uniquely identifies the music folder. Obtained by calls to getIndexes or getMusicDirectory. 
+            
+            Player player,
+            String username,
+MediaFileService mediaFileService  ,
+SecurityService securityService,
+            MediaFileDao mediaFileDao,
+            RatingService ratingService
     ) {
-        Objects.requireNonNull(id, "id required");
+
+        MediaFile dir = mediaFileService.getMediaFile(id);
+        if (dir == null) {
+            error(SubsonicRESTControllerX.ErrorCode.NOT_FOUND, "Directory not found");
+        }
+        if (!securityService.isFolderAccessAllowed(dir, username)) {
+            error(SubsonicRESTControllerX.ErrorCode.NOT_AUTHORIZED, "Access denied");
+        }
+
+        MediaFile parent = mediaFileService.getParentOf(dir);
         Directory directory = new Directory();
-        //return directory;
+        directory.setId(String.valueOf(id));
+        try {
+            if (!mediaFileService.isRoot(parent)) {
+                directory.setParent(String.valueOf(parent.getId()));
+            }
+        } catch (SecurityException x) {
+            // Ignored.
+        }
+        directory.setName(dir.getName());
+        directory.setStarred(jaxbWriter.convertDate(mediaFileDao.getMediaFileStarredDate(id, username)));
+        directory.setPlayCount((long) dir.getPlayCount());
+
+        if (dir.isAlbum()) {
+            directory.setAverageRating(ratingService.getAverageRating(dir));
+            directory.setUserRating(ratingService.getRatingForUser(username, dir));
+        }
+
+        for (MediaFile child : mediaFileService.getChildrenOf(dir, true, true, true)) {
+            directory.getChild().add(createJaxbChild(player, child, username));
+        }
+
+        return directory;
     }
 
     /*
     Returns all genres.
     Returns a <subsonic-response> element with a nested <genres> element on success.
     */
-    public Genres getGenres() {
+    public Genres getGenres(
+            MediaFileDao mediaFileDao
+    ) {
         Genres genres = new Genres();
-        Genre genre = new Genre();
-        //return genres;
+        for (org.airsonic.player.domain.Genre genre : mediaFileDao.getGenres(false)) {
+            org.subsonic.restapi.Genre g = new org.subsonic.restapi.Genre();
+            genres.getGenre().add(g);
+            g.setContent(genre.getName());
+            g.setAlbumCount(genre.getAlbumCount());
+            g.setSongCount(genre.getSongCount());
+        }
+        return genres;
     }
 
     /*
@@ -83,11 +232,32 @@ public class Api {
     Returns a <subsonic-response> element with a nested <artists> element on success.
     */
     public ArtistsID3 getArtists(
-            Integer musicFolderId    // [opt] If specified, only return artists in the music folder with the given ID. See getMusicFolders. 
-    ) {
-        ArtistsID3 artists = new ArtistsID3();
-        IndexID3 indexID3 = new IndexID3();
-        //return artists;
+            Integer musicFolderId,    // [opt] If specified, only return artists in the music folder with the given ID. See getMusicFolders. 
+            
+            String ignoredArticles,
+            String username,
+            SettingsService settingsService,
+            MusicIndexService musicIndexService,
+    ArtistDao artistDao
+            
+            
+    ) throws IOException {
+        
+        ArtistsID3 result = new ArtistsID3();
+        result.setIgnoredArticles(ignoredArticles);
+        List<org.airsonic.player.domain.MusicFolder> musicFolders = settingsService.getMusicFoldersForUser(username);
+
+        List<org.airsonic.player.domain.Artist> artists = artistDao.getAlphabetialArtists(0, Integer.MAX_VALUE, musicFolders);
+        SortedMap<MusicIndex, List<MusicIndex.SortableArtistWithArtist>> indexedArtists = musicIndexService.getIndexedArtists(artists);
+        for (Map.Entry<MusicIndex, List<MusicIndex.SortableArtistWithArtist>> entry : indexedArtists.entrySet()) {
+            IndexID3 index = new IndexID3();
+            result.getIndex().add(index);
+            index.setName(entry.getKey().getIndex());
+            for (MusicIndex.SortableArtistWithArtist sortableArtist : entry.getValue()) {
+                index.getArtist().add(createJaxbArtist(new ArtistID3(), sortableArtist.getArtist(), username));
+            }
+        }
+        return result;
     }
 
     /*
@@ -96,11 +266,28 @@ public class Api {
     */
     // The API lies, the XSD only allows ArtistWithAlbumsID3
     public ArtistWithAlbumsID3 getArtist(
-            String id       // The artist ID.
+            int id,       // The artist ID.
+            
+            String username,
+            SettingsService settingsService,
+                ArtistDao artistDao,
+ AlbumDao albumDao
+
+            
     ) {
-        Objects.requireNonNull(id, "id required");
-        ArtistWithAlbumsID3 artist = new ArtistWithAlbumsID3();
-        //return artist;
+
+        org.airsonic.player.domain.Artist artist = artistDao.getArtist(id);
+        if (artist == null) {
+            error(SubsonicRESTControllerX.ErrorCode.NOT_FOUND, "Artist not found.");
+        }
+
+        List<org.airsonic.player.domain.MusicFolder> musicFolders = settingsService.getMusicFoldersForUser(username);
+        ArtistWithAlbumsID3 result = createJaxbArtist(new ArtistWithAlbumsID3(), artist, username);
+        for (Album album : albumDao.getAlbumsForArtist(artist.getName(), musicFolders)) {
+            result.getAlbum().add(createJaxbAlbum(new AlbumID3(), album, username));
+        }
+     
+        return result;
     }
 
     /*
@@ -108,11 +295,27 @@ public class Api {
     urns a <subsonic-response> element with a nested <album> element on success.
     */
     public AlbumWithSongsID3 getAlbum(
-            String id   // The album ID.
+            int id,   // The album ID.
+            
+            String username,
+            SettingsService settingsService,
+                ArtistDao artistDao,
+            Player player,
+ AlbumDao albumDao,
+                  MediaFileDao mediaFileDao
+      
     ) {
-        Objects.requireNonNull(id, "id required");
-        AlbumWithSongsID3 album = new AlbumWithSongsID3();
-        //return album;
+        Album album = albumDao.getAlbum(id);
+        if (album == null) {
+            error(SubsonicRESTControllerX.ErrorCode.NOT_FOUND, "Album not found.");
+        }
+
+        AlbumWithSongsID3 result = createJaxbAlbum(new AlbumWithSongsID3(), album, username);
+        for (MediaFile mediaFile : mediaFileDao.getSongsForAlbum(album.getArtist(), album.getName())) {
+            result.getSong().add(createJaxbChild(player, mediaFile, username));
+        }
+
+        return result;
     }
     
     /*
@@ -120,11 +323,27 @@ public class Api {
     Returns a <subsonic-response> element with a nested <song> element on success.
     */
     public Child getSong(
-            String id   // The song ID.
+            int id,   // The song ID.
+            
+            
+            String username,
+            SettingsService settingsService,
+                ArtistDao artistDao,
+            Player player,
+ AlbumDao albumDao,
+                  MediaFileDao mediaFileDao,
+            SecurityService securityService
+
     ) {
-        Objects.requireNonNull(id, "id required");
-        Child song = new Child();
-        //return song;
+        MediaFile song = mediaFileDao.getMediaFile(id);
+        if (song == null || song.isDirectory()) {
+            error(SubsonicRESTControllerX.ErrorCode.NOT_FOUND, "Song not found.");
+        }
+        if (!securityService.isFolderAccessAllowed(song, username)) {
+            error(SubsonicRESTControllerX.ErrorCode.NOT_AUTHORIZED, "Access denied");
+        }
+
+        return createJaxbChild(player, song, username);
     }
 
     /*
@@ -132,9 +351,32 @@ public class Api {
     Returns a <subsonic-response> element with a nested <videos> element on success.
     */
     public Videos getVideos() {
-        Videos videos = new Videos();
-        Child child = new Child();
-        return videos;
+        
+    }
+    
+    public Videos getVideos_implementation(
+            Integer size,
+            Integer offset,
+            
+            String username,
+            SettingsService settingsService,
+            Player player,
+                  MediaFileDao mediaFileDao
+    ) {
+        if (size == null) {
+            size = Integer.MAX_VALUE;
+        }
+        if (offset == null) {
+            offset = 0;
+        }
+        
+        List<org.airsonic.player.domain.MusicFolder> musicFolders = settingsService.getMusicFoldersForUser(username);
+
+        Videos result = new Videos();
+        for (MediaFile mediaFile : mediaFileDao.getVideos(size, offset, musicFolders)) {
+            result.getVideo().add(createJaxbChild(player, mediaFile, username));
+        }
+        return result;
     }
 
     /*
@@ -144,8 +386,6 @@ public class Api {
     public VideoInfo getVideoInfo(
             String id // The video ID.
     ) {
-        Objects.requireNonNull(id, "id required");
-        VideoInfo videoInfo = new VideoInfo();
         throw new UnsupportedOperationException();
     }
     
@@ -154,13 +394,18 @@ public class Api {
     Returns a <subsonic-response> element with a nested <artistInfo> element on success.
     */
     public ArtistInfo getArtistInfo(
-            String id,  // The artist, album or song ID.
+            int id,  // The artist, album or song ID.
             Integer count,   // [default:20]   Max number of similar artists to return.
-            Boolean includeNotPresent    // [default:false] Whether to return artists that are not present in the media library.
+            Boolean includeNotPresent,    // [default:false] Whether to return artists that are not present in the media library.
+            
+            MediaFileService mediaFileService
     ) {
-        Objects.requireNonNull(id, "id required");
-        ArtistInfo artistInfo = new ArtistInfo();
-        //return artistInfo;
+        MediaFile mediaFile = mediaFileService.getMediaFile(id);
+        if (mediaFile == null) {
+            error(SubsonicRESTControllerX.ErrorCode.NOT_FOUND, "Media file not found.");
+        }
+        
+        return new ArtistInfo(); // this does nothing!
     }
     
     /*
@@ -168,13 +413,17 @@ public class Api {
     Returns a <subsonic-response> element with a nested <artistInfo2> element on success.
     */
     public ArtistInfo2 getArtistInfo2(
-        String id,  // The artist ID.
+        int id,  // The artist ID.
         Integer count, // [default:20] Max number of similar artists to return.
-        Boolean includeNotPresent // [default:false]   Whether to return artists that are not present in the media library.        
+        Boolean includeNotPresent, // [default:false]   Whether to return artists that are not present in the media library.        
+            
+        ArtistDao artistDao
     ) {
-        Objects.requireNonNull(id, "id required");
-        ArtistInfo2 artistInfo = new ArtistInfo2();
-        //return artistInfo;
+        org.airsonic.player.domain.Artist artist = artistDao.getArtist(id);
+        if (artist == null) {
+            error(SubsonicRESTControllerX.ErrorCode.NOT_FOUND, "Artist not found.");
+        }
+        return new ArtistInfo2(); // this does nothing!
     }
     
     /*
@@ -182,11 +431,16 @@ public class Api {
     Returns a <subsonic-response> element with a nested <albumInfo> element on success.
     */
     public AlbumInfo getAlbumInfo(
-            String id // The album or song ID.
+            int id, // The album or song ID.
+            
+            MediaFileService mediaFileService
     ) {
-        Objects.requireNonNull(id, "id required");
-        AlbumInfo albumInfo = new AlbumInfo();
-        //return albumInfo;
+
+        MediaFile mediaFile = mediaFileService.getMediaFile(id);
+        if (mediaFile == null) {
+            error(SubsonicRESTController.ErrorCode.NOT_FOUND, "Media file not found.");
+        }
+        return null; // this does nothing!
     }
 
     /*
@@ -194,11 +448,15 @@ public class Api {
     Returns a <subsonic-response> element with a nested <albumInfo> element on success.
     */
     public AlbumInfo getAlbumInfo2(
-            String id // The album ID.
+            int id, // The album ID.
+            
+            AlbumDao albumDao
     ) {
-        Objects.requireNonNull(id, "id required");
-        AlbumInfo albumInfo = new AlbumInfo();
-        //return albumInfo;
+        Album album = albumDao.getAlbum(id);
+        if (album == null) {
+            error(SubsonicRESTController.ErrorCode.NOT_FOUND, "Album not found.");
+        }
+        return null; // this does nothing!
     }
     
     
@@ -207,13 +465,17 @@ public class Api {
     Returns a <subsonic-response> element with a nested <similarSongs> element on success.
     */
     public SimilarSongs getSimilarSongs(
-            String id, // The artist, album or song ID.
-            Integer count // [default:50] Max number of songs to return.
+            int id, // The artist, album or song ID.
+            Integer count, // [default:50] Max number of songs to return.
+            
+            MediaFileService mediaFileService
     ) {
-        Objects.requireNonNull(id, "id required");
-        SimilarSongs similarSongs = new SimilarSongs();
-        Child child = new Child();
-        return similarSongs;
+        MediaFile mediaFile = mediaFileService.getMediaFile(id);
+        if (mediaFile == null) {
+            error(SubsonicRESTControllerX.ErrorCode.NOT_FOUND, "Media file not found.");
+        }
+
+        return new SimilarSongs(); // this does nothing!
     }
 
     /*
@@ -222,12 +484,15 @@ public class Api {
     */
     public SimilarSongs2 getSimilarSongs2(
             String id, // The artist ID.
-            Integer count // [default:50]  Max number of songs to return.
+            Integer count, // [default:50]  Max number of songs to return.
+            
+            ArtistDao artistDao
     ) {
-        Objects.requireNonNull(id, "id required");
-        SimilarSongs2 similarSongs = new SimilarSongs2();
-        Child child = new Child();
-        return similarSongs;
+        org.airsonic.player.domain.Artist artist = artistDao.getArtist(id);
+        if (artist == null) {
+            error(SubsonicRESTControllerX.ErrorCode.NOT_FOUND, "Artist not found.");
+        }
+        return new SimilarSongs2(); // this does nothing!
     }
     
     /*
@@ -238,10 +503,7 @@ public class Api {
             String artist,  // The artist name
             Integer count  // [default:50]  Max number of songs to return.
     ) {
-        Objects.requireNonNull(artist, "artist required");
-        TopSongs topSongs = new TopSongs();
-        Child child = new Child();
-        //return topSongs;
+        return new TopSongs(); // this does nothing!
     }
     
     
