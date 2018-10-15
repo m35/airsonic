@@ -24,18 +24,24 @@ import org.airsonic.player.domain.Album;
 import org.airsonic.player.domain.MediaFile;
 import org.airsonic.player.domain.MusicFolderContent;
 import org.airsonic.player.domain.MusicIndex;
+import org.airsonic.player.domain.PlayStatus;
 import org.airsonic.player.domain.Player;
+import org.airsonic.player.domain.RandomSearchCriteria;
+import org.airsonic.player.domain.UserSettings;
 import org.airsonic.player.service.MediaFileService;
 import org.airsonic.player.service.MusicIndexService;
 import org.airsonic.player.service.PlayerService;
 import org.airsonic.player.service.RatingService;
+import org.airsonic.player.service.SearchService;
 import org.airsonic.player.service.SecurityService;
 import org.airsonic.player.service.SettingsService;
+import org.airsonic.player.service.StatusService;
 import org.airsonic.player.util.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import static org.springframework.web.bind.ServletRequestUtils.getIntParameter;
 import static org.springframework.web.bind.ServletRequestUtils.getLongParameter;
 import static org.springframework.web.bind.ServletRequestUtils.getRequiredIntParameter;
+import static org.springframework.web.bind.ServletRequestUtils.getRequiredStringParameter;
 import org.subsonic.restapi.*;
 
 public class Api {
@@ -521,10 +527,7 @@ SecurityService securityService,
         Integer musicFolderId // [opt] (Since 1.11.0) Only return albums in the music folder with the given ID. See getMusicFolders.
             
     ) {
-        Objects.requireNonNull(type, "type required");
-        AlbumList albumList = new AlbumList();
-        Child child = new Child();
-        //return albumList;
+        // this one's tuff
     }
 
     /*
@@ -538,11 +541,43 @@ SecurityService securityService,
         Integer fromYear, // [req if type=year] The first year in the range. If fromYear > toYear a reverse chronological list is returned.
         Integer toYear, // [req if type=year] The last year in the range.
         String genre, // [req if type=genre] The name of the genre, e.g., "Rock".
-        Integer musicFolderId // [opt] (Since 1.12.0) Only return albums in the music folder with the given ID. See getMusicFolders.
-    ) {
-        AlbumList2 albumList = new AlbumList2();
-        AlbumID3 albumID3 = new AlbumID3();
-        //return albumList;
+        Integer musicFolderId, // [opt] (Since 1.12.0) Only return albums in the music folder with the given ID. See getMusicFolders.
+        
+        
+        String username,
+        List<org.airsonic.player.domain.MusicFolder> musicFolders,
+        AlbumDao albumDao,
+            SearchService searchService
+        
+    ) throws Exception {
+        List<Album> albums;
+        if ("frequent".equals(type)) {
+            albums = albumDao.getMostFrequentlyPlayedAlbums(offset, size, musicFolders);
+        } else if ("recent".equals(type)) {
+            albums = albumDao.getMostRecentlyPlayedAlbums(offset, size, musicFolders);
+        } else if ("newest".equals(type)) {
+            albums = albumDao.getNewestAlbums(offset, size, musicFolders);
+        } else if ("alphabeticalByArtist".equals(type)) {
+            albums = albumDao.getAlphabetialAlbums(offset, size, true, musicFolders);
+        } else if ("alphabeticalByName".equals(type)) {
+            albums = albumDao.getAlphabetialAlbums(offset, size, false, musicFolders);
+        } else if ("byGenre".equals(type)) {
+            albums = albumDao.getAlbumsByGenre(offset, size, getRequiredStringParameter(genre), musicFolders);
+        } else if ("byYear".equals(type)) {
+            albums = albumDao.getAlbumsByYear(offset, size, getRequiredIntParameter(fromYear),
+                                              getRequiredIntParameter(toYear), musicFolders);
+        } else if ("starred".equals(type)) {
+            albums = albumDao.getStarredAlbums(offset, size, username, musicFolders);
+        } else if ("random".equals(type)) {
+            albums = searchService.getRandomAlbumsId3(size, musicFolders);
+        } else {
+            throw new Exception("Invalid list type: " + type);
+        }
+        AlbumList2 result = new AlbumList2();
+        for (Album album : albums) {
+            result.getAlbum().add(createJaxbAlbum(new AlbumID3(), album, username));
+        }
+        return result;
     }
 
     /*
@@ -554,11 +589,21 @@ SecurityService securityService,
         String genre, // [opt] Only returns songs belonging to this genre.
         Integer fromYear, // [opt] Only return songs published after or in this year.
         Integer toYear, // [opt] Only return songs published before or in this year.
-        Integer musicFolderId // [opt] Only return songs in the music folder with the given ID. See getMusicFolders.
+        Integer musicFolderId, // [opt] Only return songs in the music folder with the given ID. See getMusicFolders.
+        
+        List<org.airsonic.player.domain.MusicFolder> musicFolders      ,
+        SearchService searchService,
+            String username,
+            Player player
+        
     ) {
-        Songs songs = new Songs();
-        Child child = new Child();
-        //return songs;
+        RandomSearchCriteria criteria = new RandomSearchCriteria(size, genre, fromYear, toYear, musicFolders);
+
+        Songs result = new Songs();
+        for (MediaFile mediaFile : searchService.getRandomSongs(criteria)) {
+            result.getSong().add(createJaxbChild(player, mediaFile, username));
+        }
+        return result;
     }
 
     /*
@@ -566,24 +611,60 @@ SecurityService securityService,
     Returns a <subsonic-response> element with a nested <songsByGenre> element on success.
     */
     public Songs getSongsByGenre(
-        Object genre, //  The genre, as returned by getGenres.
+        String genre, //  The genre, as returned by getGenres.
         Integer count, // [default:10] The maximum number of songs to return. Max 500.
         Integer offset, // [default:0] The offset. Useful if you want to page through the songs in a genre.
-        Integer musicFolderId // [opt] (Since 1.12.0) Only return albums in the music folder with the given ID. See getMusicFolders.
+        Integer musicFolderId, // [opt] (Since 1.12.0) Only return albums in the music folder with the given ID. See getMusicFolders.
+        
+            String username,
+            Player player,
+            MediaFileDao mediaFileDao,
+        List<org.airsonic.player.domain.MusicFolder> musicFolders      
+            
+        
     ) {
         Songs songs = new Songs();
-        Child child = new Child();
-        //return songs;
+        for (MediaFile mediaFile : mediaFileDao.getSongsByGenre(genre, offset, count, musicFolders)) {
+            songs.getSong().add(createJaxbChild(player, mediaFile, username));
+        }
+        return songs;
     }
 
     /*
     Returns what is currently being played by all users. Takes no extra parameters. 
     Returns a <subsonic-response> element with a nested <nowPlaying> element on success.
     */
-    public NowPlaying getNowPlaying() {
-        NowPlaying nowPlaying = new NowPlaying();
-        NowPlayingEntry nowPlayingEntry = new NowPlayingEntry();
-        return nowPlaying;
+    public NowPlaying getNowPlaying(
+            StatusService statusService,
+            SettingsService settingsService
+    ) {
+        NowPlaying result = new NowPlaying();
+
+        for (PlayStatus status : statusService.getPlayStatuses()) {
+
+            Player player = status.getPlayer();
+            MediaFile mediaFile = status.getMediaFile();
+            String username = player.getUsername();
+            if (username == null) {
+                continue;
+            }
+
+            UserSettings userSettings = settingsService.getUserSettings(username);
+            if (!userSettings.isNowPlayingAllowed()) {
+                continue;
+            }
+
+            long minutesAgo = status.getMinutesAgo();
+            if (minutesAgo < 60) {
+                NowPlayingEntry entry = new NowPlayingEntry();
+                entry.setUsername(username);
+                entry.setPlayerId(player.getId());
+                entry.setPlayerName(player.getName());
+                entry.setMinutesAgo((int) minutesAgo);
+                result.getEntry().add(createJaxbChild(entry, player, mediaFile, username));
+            }
+        }
+        return result;
     }
 
     /*
@@ -592,9 +673,23 @@ SecurityService securityService,
     */
     public Starred getStarred(
             Integer musicFolderId // [opt] (Since 1.12.0) Only return results from the music folder with the given ID. See getMusicFolders.
+            
+            ,MediaFileDao mediaFileDao,
+            String username,
+            Player player,
+            List<org.airsonic.player.domain.MusicFolder> musicFolders
     ) {
-        Starred starred = new Starred();
-        return starred;
+        Starred result = new Starred();
+        for (MediaFile artist : mediaFileDao.getStarredDirectories(0, Integer.MAX_VALUE, username, musicFolders)) {
+            result.getArtist().add(createJaxbArtist(artist, username));
+        }
+        for (MediaFile album : mediaFileDao.getStarredAlbums(0, Integer.MAX_VALUE, username, musicFolders)) {
+            result.getAlbum().add(createJaxbChild(player, album, username));
+        }
+        for (MediaFile song : mediaFileDao.getStarredFiles(0, Integer.MAX_VALUE, username, musicFolders)) {
+            result.getSong().add(createJaxbChild(player, song, username));
+        }
+        return result;
     }
 
     /*
@@ -602,9 +697,26 @@ SecurityService securityService,
     */
     public Starred2 getStarred2(
             Integer musicFolderId // [opt] (Since 1.12.0) Only return results from the music folder with the given ID. See getMusicFolders.
+            
+            ,
+            MediaFileDao mediaFileDao,
+            ArtistDao artistDao,
+            AlbumDao albumDao,
+            String username,
+            Player player,
+            List<org.airsonic.player.domain.MusicFolder> musicFolders
     ) {
-        Starred2 starred = new Starred2();
-        return starred;
+        Starred2 result = new Starred2();
+        for (org.airsonic.player.domain.Artist artist : artistDao.getStarredArtists(0, Integer.MAX_VALUE, username, musicFolders)) {
+            result.getArtist().add(createJaxbArtist(new ArtistID3(), artist, username));
+        }
+        for (Album album : albumDao.getStarredAlbums(0, Integer.MAX_VALUE, username, musicFolders)) {
+            result.getAlbum().add(createJaxbAlbum(new AlbumID3(), album, username));
+        }
+        for (MediaFile song : mediaFileDao.getStarredFiles(0, Integer.MAX_VALUE, username, musicFolders)) {
+            result.getSong().add(createJaxbChild(player, song, username));
+        }
+        return result;
     }
 
 
